@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>grün farm - 栽培日数管理</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap');
+  :root {
+    --brown: #5c3d1e;
+    --green: #5a9e3a;
+    --green-light: #7cc45a;
+    --green-pale: #e8f5e0;
+    --cream: #f7f3ec;
+    --cream-dark: #ede8df;
+    --text: #3a2a14;
+    --text-light: #7a6040;
+    --white: #fff;
+    --shadow: 0 2px 12px rgba(60,40,10,0.10);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--brown);
+    padding: 14px 16px 0;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 3px 16px rgba(30,15,5,0.22);
+  }
+  .header-title-row {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-back-btn {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 2px 0;
+    transition: color 0.15s;
+  }
+  .header-back-btn:active { color: rgba(255,255,255,0.9); }
+  .header-sub {
+    font-size: 26px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.55);
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+    font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: var(--green-light);
+  }
+  .tab-sort-btns {
+    display: flex; flex-direction: column; gap: 0px;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .tab-btn.active .tab-sort-btns { opacity: 1; }
+  .tab-sort-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 9px; cursor: pointer; padding: 0 1px;
+    line-height: 1.1;
+  }
+  .tab-sort-btn:hover { color: var(--green-light); }
+  .tab-add-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 8px 12px;
+    font-size: 20px;
+    color: rgba(255,255,255,0.45);
+    cursor: pointer;
+    font-weight: 300;
+    transition: color 0.18s;
+  }
+  .tab-add-btn:hover { color: var(--green-light); }
+
+  /* ── MAIN ── */
+  .main { padding: 16px 14px 80px; }
+
+  /* ── CROP HEADER ── */
+  .crop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .crop-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--brown);
+  }
+  .crop-del-btn {
+    background: none;
+    border: 1.5px solid #d9b8a0;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #c07060;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px 9px;
+    border-bottom: 1.5px solid var(--cream-dark);
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+  }
+  .section-title.elapsed { color: #4a8030; }
+  .section-title.remaining { color: #6a4e90; }
+  .section-title.log { color: #3a6080; }
+  .item-add-btn {
+    background: none; border: none;
+    font-size: 22px; color: var(--green);
+    cursor: pointer; line-height: 1; font-weight: 300;
+  }
+
+  /* ── DAY ROWS ── */
+  .item-list { padding: 4px 0; }
+  .item-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cream);
+    transition: background 0.15s;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-row:hover { background: var(--cream); }
+  .item-label { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .item-date-label { font-size: 13px; color: var(--text-light); }
+  .day-badge {
+    display: flex; flex-direction: column; align-items: center; min-width: 54px;
+  }
+  .day-num {
+    font-size: 22px; font-weight: 900; line-height: 1;
+  }
+  .day-num.elapsed { color: #5a9e3a; }
+  .day-num.remaining { color: #7a5ea0; }
+  .day-num.overdue { color: #e05050; }
+  .day-unit { font-size: 13px; color: var(--text-light); margin-top: 1px; }
+  .item-del-btn {
+    background: none; border: none; color: #ccc;
+    font-size: 18px; cursor: pointer; padding: 2px 4px;
+    border-radius: 6px; transition: color 0.2s; font-family: inherit;
+  }
+  .item-del-btn:hover { color: #e05050; }
+
+  /* ── LOG SECTION ── */
+  .log-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--cream);
+    transition: background 0.15s;
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-row:hover { background: var(--cream); }
+  .log-date-col {
+    min-width: 80px;
+    font-size: 14px; font-weight: 700; color: var(--text-light);
+    padding-top: 1px;
+    white-space: nowrap;
+  }
+  .log-body { flex: 1; min-width: 0; }
+  .log-action {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    margin-bottom: 3px;
+  }
+  .log-memo {
+    font-size: 13px; color: var(--text-light);
+    line-height: 1.45;
+    word-break: break-all;
+  }
+  .log-actions {
+    display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+  }
+  .log-edit-btn, .log-del-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 13px; padding: 4px 8px; border-radius: 5px;
+    font-family: inherit;
+  }
+  .log-edit-btn { color: #7a9060; border: 1px solid #c8dab8; }
+  .log-del-btn  { color: #c08070; border: 1px solid #e0c0b8; }
+  .log-edit-btn:hover { background: #eaf4e0; }
+  .log-del-btn:hover  { background: #fae8e4; }
+
+  /* ── EMPTY ── */
+  .empty-state {
+    padding: 18px 14px; text-align: center;
+    color: #bbb; font-size: 14px;
+  }
+  .no-crop {
+    text-align: center; padding: 60px 20px; color: var(--text-light);
+  }
+  .no-crop-icon { font-size: 48px; margin-bottom: 12px; }
+  .no-crop-text { font-size: 16px; }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(30,15,5,0.40);
+    z-index: 200; align-items: flex-end; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal-title {
+    font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 16px;
+  }
+  .modal label {
+    display: block; font-size: 14px; font-weight: 700;
+    color: var(--text-light); margin-bottom: 5px; margin-top: 14px;
+    letter-spacing: 0.06em;
+  }
+  .modal input[type="text"],
+  .modal input[type="date"],
+  .modal textarea {
+    width: 100%;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 16px; color: var(--text);
+    background: var(--cream); outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .modal textarea { resize: vertical; min-height: 64px; }
+  .modal input:focus, .modal textarea:focus {
+    border-color: var(--green); background: #fff;
+  }
+  .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-cancel {
+    flex: 1; padding: 14px;
+    border: 1.5px solid var(--cream-dark);
+    border-radius: 10px; background: none;
+    color: var(--text-light); font-size: 16px;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-ok {
+    flex: 2; padding: 14px; border: none;
+    border-radius: 10px; background: var(--green);
+    color: #fff; font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: background 0.2s;
+  }
+  .btn-ok:hover { background: var(--green-light); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title-row">
+    <div class="header-back-btn" onclick="location.href='index.html'">← Farm Tools</div>
+    <div class="header-sub">栽培日数管理</div>
+  </div>
+  <div class="tabs-wrap" id="tabsWrap">
+    <button class="tab-add-btn" onclick="openAddCropModal()" title="作物追加">＋</button>
+  </div>
+</div>
+
+<div class="main" id="mainContent"></div>
+
+<!-- Modal: 作物追加 -->
+<div class="modal-bg" id="modalAddCrop">
+  <div class="modal">
+    <div class="modal-title">🌱 新しい作物を追加</div>
+    <label>作物名</label>
+    <input type="text" id="inputCropName" placeholder="例: トマト">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modalAddCrop')">キャンセル</button>
+      <button class="btn-ok" onclick="addCrop()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 日数項目追加 -->
+<div class="modal-bg" id="modalAddItem">
+  <div class="modal">
+    <div class="modal-title" id="modalAddItemTitle">項目を追加</div>
+    <label>項目名</label>
+    <input type="text" id="inputItemName" placeholder="例: 播種">
+    <label id="inputDateLabel">開始日</label>
+    <input type="date" id="inputItemDate">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modalAddItem')">キャンセル</button>
+      <button class="btn-ok" onclick="addItem()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 作業ログ追加/編集 -->
+<div class="modal-bg" id="modalLog">
+  <div class="modal">
+    <div class="modal-title" id="modalLogTitle">📝 作業を記録</div>
+    <label>日付</label>
+    <input type="date" id="inputLogDate">
+    <label>やったこと</label>
+    <input type="text" id="inputLogAction" placeholder="例: 定植">
+    <label>メモ（任意）</label>
+    <textarea id="inputLogMemo" placeholder="例: 2000株を2日かけて定植"></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modalLog')">キャンセル</button>
+      <button class="btn-ok" onclick="saveLog()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// キー名変更の救済: grun_crops2があればgrun_cropsに移行
+if (localStorage.getItem('grun_crops2') && !localStorage.getItem('grun_crops')) {
+  localStorage.setItem('grun_crops', localStorage.getItem('grun_crops2'));
+}
+let crops = JSON.parse(localStorage.getItem('grun_crops') || '[]');
+let currentCropId = crops.length ? crops[0].id : null;
+let addItemMode = null;
+let addItemCropId = null;
+let editLogId = null;
+let editLogCropId = null;
+
+if (!crops.length) {
+  const now = new Date();
+  const daysAgo = d => { const dt = new Date(now); dt.setDate(dt.getDate()-d); return dt.toISOString().slice(0,10); };
+  const daysLater = d => { const dt = new Date(now); dt.setDate(dt.getDate()+d); return dt.toISOString().slice(0,10); };
+  const fmtDate = s => { const d=new Date(s); return (d.getMonth()+1)+'/'+(d.getDate())+'('+['日','月','火','水','木','金','土'][d.getDay()]+')'; };
+  crops = [
+    { id:'c1', name:'トマト',
+      elapsed:[{id:'e1',name:'播種',date:daysAgo(15)},{id:'e2',name:'薬剤散布',date:daysAgo(10)}],
+      remaining:[{id:'r1',name:'開花まで',date:daysLater(30)}],
+      logs:[{id:'l1',date:daysAgo(15),action:'播種',memo:'ハウス2棟、約1500株'},{id:'l2',date:daysAgo(10),action:'薬剤散布',memo:'ダニコール1000倍希釈'}]
+    },
+    { id:'c2', name:'なす',
+      elapsed:[{id:'e3',name:'播種',date:daysAgo(20)},{id:'e4',name:'収穫',date:daysAgo(14)}],
+      remaining:[{id:'r2',name:'次の施肥まで',date:daysLater(7)}],
+      logs:[{id:'l3',date:daysAgo(20),action:'播種',memo:''},{id:'l4',date:daysAgo(14),action:'初収穫',memo:'露地1列目'}]
+    }
+  ];
+  currentCropId = 'c1';
+  save();
+}
+
+function save() { localStorage.setItem('grun_crops', JSON.stringify(crops)); }
+
+function daysDiff(dateStr) {
+  const t=new Date(dateStr), today=new Date();
+  t.setHours(0,0,0,0); today.setHours(0,0,0,0);
+  return Math.round((today-t)/86400000);
+}
+
+function fmtDate(s) {
+  const d=new Date(s);
+  return (d.getMonth()+1)+'/'+(d.getDate())+'('+['日','月','火','水','木','金','土'][d.getDay()]+')';
+}
+
+function render() { renderTabs(); renderMain(); }
+
+function renderTabs() {
+  const wrap = document.getElementById('tabsWrap');
+  const addBtn = wrap.querySelector('.tab-add-btn');
+  wrap.querySelectorAll('.tab-btn').forEach(b=>b.remove());
+  crops.forEach((c,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (c.id===currentCropId?' active':'');
+    btn.innerHTML = esc(c.name) +
+      '<span class="tab-sort-btns">' +
+        '<button class="tab-sort-btn" onclick="moveCrop(\''+c.id+'\',-1,event)" title="左へ">◀</button>' +
+        '<button class="tab-sort-btn" onclick="moveCrop(\''+c.id+'\',1,event)" title="右へ">▶</button>' +
+      '</span>';
+    btn.addEventListener('click', e => {
+      if (e.target.classList.contains('tab-sort-btn')) return;
+      currentCropId = c.id; render();
+    });
+    wrap.insertBefore(btn, addBtn);
+  });
+}
+
+function moveCrop(cropId, dir, e) {
+  e.stopPropagation();
+  const i = crops.findIndex(c=>c.id===cropId);
+  const j = i + dir;
+  if (j<0 || j>=crops.length) return;
+  [crops[i], crops[j]] = [crops[j], crops[i]];
+  save(); render();
+}
+
+function renderMain() {
+  const main = document.getElementById('mainContent');
+  if (!crops.length) {
+    main.innerHTML = '<div class="no-crop"><div class="no-crop-icon">🌱</div><div class="no-crop-text">作物を追加してください</div></div>';
+    return;
+  }
+  const crop = crops.find(c=>c.id===currentCropId);
+  if (!crop) return;
+
+  let h = '';
+
+  // Crop header
+  h += '<div class="crop-header">';
+  h += '<div class="crop-title">'+esc(crop.name)+'</div>';
+  h += '<button class="crop-del-btn" onclick="deleteCrop(\''+crop.id+'\')">作物を削除</button>';
+  h += '</div>';
+
+  // Elapsed
+  h += section('⏱ 経過日数', 'elapsed', crop.id, crop.elapsed.map(item => {
+    const d = daysDiff(item.date);
+    return row(
+      '<div class="item-name">'+esc(item.name)+'</div><div class="item-date-label">開始日: '+item.date+'</div>',
+      '<div class="day-badge"><span class="day-num elapsed">'+d+'</span><span class="day-unit">日経過</span></div>',
+      'deleteItem(\''+crop.id+'\',\'elapsed\',\''+item.id+'\')'
+    );
+  }).join(''));
+
+  // Remaining
+  h += section('📅 残り日数', 'remaining', crop.id, crop.remaining.map(item => {
+    const rem = -daysDiff(item.date);
+    const cls = rem < 0 ? 'overdue' : 'remaining';
+    const label = rem < 0 ? '+'+Math.abs(rem)+'</span><span class="day-unit">日超過' : rem+'</span><span class="day-unit">日後';
+    return row(
+      '<div class="item-name">'+esc(item.name)+'</div><div class="item-date-label">目標日: '+item.date+'</div>',
+      '<div class="day-badge"><span class="day-num '+cls+'">'+label+'</span></div>',
+      'deleteItem(\''+crop.id+'\',\'remaining\',\''+item.id+'\')'
+    );
+  }).join(''));
+
+  // Log
+  const logs = (crop.logs||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  h += '<div class="section">';
+  h += '<div class="section-header"><span class="section-title log">📋 作業ログ</span>';
+  h += '<button class="item-add-btn" onclick="openLogModal(\''+crop.id+'\',null)">＋</button></div>';
+  h += '<div class="item-list">';
+  if (!logs.length) {
+    h += '<div class="empty-state">記録がありません。＋で追加</div>';
+  } else {
+    logs.forEach(log => {
+      h += '<div class="log-row">';
+      h += '<div class="log-date-col">'+fmtDate(log.date)+'</div>';
+      h += '<div class="log-body"><div class="log-action">'+esc(log.action)+'</div>';
+      if (log.memo) h += '<div class="log-memo">'+esc(log.memo)+'</div>';
+      h += '</div>';
+      h += '<div class="log-actions">';
+      h += '<button class="log-edit-btn" onclick="openLogModal(\''+crop.id+'\',\''+log.id+'\')">編集</button>';
+      h += '<button class="log-del-btn" onclick="deleteLog(\''+crop.id+'\',\''+log.id+'\')">削除</button>';
+      h += '</div></div>';
+    });
+  }
+  h += '</div></div>';
+
+  main.innerHTML = h;
+}
+
+function section(title, cls, cropId, rowsHtml) {
+  return '<div class="section"><div class="section-header">'
+    + '<span class="section-title '+cls+'">'+title+'</span>'
+    + '<button class="item-add-btn" onclick="openAddItemModal(\''+cropId+'\',\''+cls+'\')">＋</button>'
+    + '</div><div class="item-list">'
+    + (rowsHtml || '<div class="empty-state">項目がありません。＋で追加</div>')
+    + '</div></div>';
+}
+
+function row(labelHtml, badgeHtml, delFn) {
+  return '<div class="item-row"><div class="item-label">'+labelHtml+'</div>'
+    +badgeHtml
+    +'<button class="item-del-btn" onclick="'+delFn+'">×</button></div>';
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// --- modals ---
+function openAddCropModal() {
+  document.getElementById('inputCropName').value='';
+  document.getElementById('modalAddCrop').classList.add('open');
+  setTimeout(()=>document.getElementById('inputCropName').focus(),100);
+}
+function openAddItemModal(cropId, mode) {
+  addItemMode=mode; addItemCropId=cropId;
+  document.getElementById('inputItemName').value='';
+  document.getElementById('inputItemDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('modalAddItemTitle').textContent = mode==='elapsed'?'⏱ 経過日数の項目を追加':'📅 残り日数の項目を追加';
+  document.getElementById('inputDateLabel').textContent = mode==='elapsed'?'開始日':'目標日';
+  document.getElementById('modalAddItem').classList.add('open');
+  setTimeout(()=>document.getElementById('inputItemName').focus(),100);
+}
+function openLogModal(cropId, logId) {
+  editLogCropId=cropId; editLogId=logId;
+  const crop=crops.find(c=>c.id===cropId);
+  const log = logId ? (crop.logs||[]).find(l=>l.id===logId) : null;
+  document.getElementById('modalLogTitle').textContent = logId?'📝 作業を編集':'📝 作業を記録';
+  document.getElementById('inputLogDate').value = log ? log.date : new Date().toISOString().slice(0,10);
+  document.getElementById('inputLogAction').value = log ? log.action : '';
+  document.getElementById('inputLogMemo').value = log ? log.memo : '';
+  document.getElementById('modalLog').classList.add('open');
+  setTimeout(()=>document.getElementById('inputLogAction').focus(),100);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// --- actions ---
+function addCrop() {
+  const name=document.getElementById('inputCropName').value.trim();
+  if(!name) return;
+  const c={id:'c'+Date.now(),name,elapsed:[],remaining:[],logs:[]};
+  crops.push(c); currentCropId=c.id; save(); closeModal('modalAddCrop'); render();
+}
+function addItem() {
+  const name=document.getElementById('inputItemName').value.trim();
+  const date=document.getElementById('inputItemDate').value;
+  if(!name||!date) return;
+  const crop=crops.find(c=>c.id===addItemCropId);
+  if(!crop) return;
+  crop[addItemMode].push({id:'i'+Date.now(),name,date});
+  save(); closeModal('modalAddItem'); render();
+}
+function saveLog() {
+  const date=document.getElementById('inputLogDate').value;
+  const action=document.getElementById('inputLogAction').value.trim();
+  const memo=document.getElementById('inputLogMemo').value.trim();
+  if(!date||!action) return;
+  const crop=crops.find(c=>c.id===editLogCropId);
+  if(!crop) return;
+  if(!crop.logs) crop.logs=[];
+  if(editLogId) {
+    const log=crop.logs.find(l=>l.id===editLogId);
+    if(log){log.date=date;log.action=action;log.memo=memo;}
+  } else {
+    crop.logs.push({id:'l'+Date.now(),date,action,memo});
+  }
+  save(); closeModal('modalLog'); render();
+}
+function deleteItem(cropId, type, itemId) {
+  const crop=crops.find(c=>c.id===cropId);
+  if(!crop) return;
+  crop[type]=crop[type].filter(i=>i.id!==itemId);
+  save(); render();
+}
+function deleteLog(cropId, logId) {
+  const crop=crops.find(c=>c.id===cropId);
+  if(!crop) return;
+  crop.logs=(crop.logs||[]).filter(l=>l.id!==logId);
+  save(); render();
+}
+function deleteCrop(cropId) {
+  if(!confirm('この作物を削除しますか？')) return;
+  crops=crops.filter(c=>c.id!==cropId);
+  currentCropId=crops.length?crops[0].id:null;
+  save(); render();
+}
+
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click', e=>{ if(e.target===bg) bg.classList.remove('open'); });
+});
+document.getElementById('inputCropName').addEventListener('keydown',e=>{if(e.key==='Enter')addCrop();});
+document.getElementById('inputItemName').addEventListener('keydown',e=>{if(e.key==='Enter')addItem();});
+
+render();
+</script>
+</body>
+</html>
