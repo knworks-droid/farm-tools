@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>原価管理 - Farm Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0ebe3;
+    --surface: #ffffff;
+    --surface2: #e8e2d8;
+    --border: #ddd6ca;
+    --text: #2c1a0e;
+    --text2: #6b5a4e;
+    --text3: #a0907e;
+    --header-bg: #4a2e1a;
+    --header-text: #ffffff;
+    --green: #4a8c3f;
+    --green-light: #e6f2e4;
+    --green-mid: #6aaa5e;
+    --amber: #b87830;
+    --amber-light: #fdf0e0;
+    --red: #e05a4e;
+    --red-light: #fdecea;
+    --blue: #4a6b8a;
+    --blue-light: #e8eef5;
+    --tag-h: #4a8c3f;
+    --tag-p: #b87830;
+    --tag-s: #e05a4e;
+    --tag-b: #4a6b8a;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 2px 12px rgba(74,46,26,0.08);
+    --shadow-md: 0 4px 24px rgba(74,46,26,0.13);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    background: var(--header-bg);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-back {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'DM Mono', monospace;
+    padding: 4px 0;
+    transition: color 0.15s;
+  }
+  .header-back:active { color: rgba(255,255,255,0.9); }
+  .header-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--header-text);
+  }
+  .header-title span {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.6);
+    display: block;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+
+  /* ── スクロールエリア ── */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 90px;
+  }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ── タブバー ── */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    background: var(--header-bg);
+    display: flex;
+    padding: 10px 0 20px;
+    z-index: 20;
+  }
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .tab-item.active { color: #ffffff; }
+  .tab-icon { font-size: 22px; line-height: 1; }
+
+  /* ── セクション ── */
+  .section { padding: 20px 20px 0; }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* ── アクションボタン4つ ── */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 20px 20px 0;
+  }
+  .action-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow);
+  }
+  .action-btn:active { transform: scale(0.97); box-shadow: none; }
+  .action-btn .btn-icon { font-size: 26px; line-height: 1; }
+  .action-btn .btn-label { font-size: 14px; font-weight: 700; color: var(--text); }
+  .action-btn .btn-sub { font-size: 11px; color: var(--text3); margin-top: -4px; }
+  .action-btn.green { border-color: #b8d4c0; background: linear-gradient(135deg, #fff 60%, #eef5f0); }
+  .action-btn.amber { border-color: #e8cfa0; background: linear-gradient(135deg, #fff 60%, #fdf6ee); }
+  .action-btn.red   { border-color: #e8b8b8; background: linear-gradient(135deg, #fff 60%, #fdf0f0); }
+  .action-btn.blue  { border-color: #b8cce0; background: linear-gradient(135deg, #fff 60%, #eef3f8); }
+
+  /* ── 今日のログ一覧 ── */
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .log-type-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .log-type-dot.farm   { background: var(--tag-h); }
+  .log-type-dot.spray  { background: var(--tag-p); }
+  .log-type-dot.ship   { background: var(--tag-s); }
+  .log-type-dot.buy    { background: var(--tag-b); }
+
+  .log-content { flex: 1; min-width: 0; }
+  .log-main {
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .log-crop {
+    font-size: 11px;
+    background: var(--green-light);
+    color: var(--green);
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+  .log-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .log-time {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  /* ── 空状態 ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* ── 作物フィルター ── */
+  .crop-filter {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px 0;
+    overflow-x: auto;
+  }
+  .crop-filter::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .filter-chip.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .labor-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 0;
+  }
+  .labor-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .toggle {
+    width: 42px; height: 24px;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    transition: transform 0.2s, right 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle.on  { background: var(--green); }
+  .toggle.on::after  { right: 3px; }
+  .toggle.off { background: var(--border); }
+  .toggle.off::after { right: 21px; }
+
+  /* ── 作物カード ── */
+  .crop-cards { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 0; }
+  .crop-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .crop-card:active { transform: scale(0.99); }
+  .crop-card-header {
+    padding: 14px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .crop-name {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .crop-arrow { font-size: 14px; color: var(--text3); }
+
+  .crop-card-body { padding: 12px 16px 14px; }
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 13px;
+  }
+  .cost-label { color: var(--text2); }
+  .cost-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .cost-value.minus { color: var(--red); }
+  .cost-value.plus  { color: var(--green); }
+  .cost-divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .cost-row.total .cost-label { font-weight: 700; font-size: 14px; color: var(--text); }
+  .cost-row.total .cost-value { font-size: 15px; font-weight: 700; }
+
+  /* ── モーダル ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-width: 390px;
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 40px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text2);
+    border: none;
+  }
+
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .field-select, .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    color: var(--text);
+    appearance: none;
+    outline: none;
+  }
+  .field-select:focus, .field-input:focus {
+    border-color: var(--green-mid);
+    background: #fff;
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    pointer-events: none;
+  }
+
+  .time-picker {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .time-unit {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .time-display {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 24px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+  }
+  .time-field-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 24px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    text-align: center;
+    outline: none;
+    color: var(--text);
+  }
+  .time-field-input:focus { border-color: var(--green-mid); background: #fff; }
+  .time-unit-label { font-size: 11px; color: var(--text3); font-weight: 700; }
+  .time-sep { font-size: 22px; color: var(--text3); margin-top: -10px; }
+
+  .btn-submit {
+    width: 100%;
+    padding: 15px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: opacity 0.15s;
+  }
+  .btn-submit:active { opacity: 0.85; }
+
+  /* ── 設定画面 ── */
+  .setting-section { padding: 20px 20px 0; }
+  .setting-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row-label { font-weight: 500; }
+  .setting-row-value { color: var(--text3); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .setting-row-value .arr { color: var(--border); }
+
+  /* ── スクリーン切り替え ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── ログ一覧 ── */
+  .log-date-group { margin-bottom: 20px; }
+  .log-date-header {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 0.8px;
+    padding: 4px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .log-all-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-all-item:last-child { border-bottom: none; }
+  .log-all-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .log-all-dot.farm  { background: var(--tag-h); }
+  .log-all-dot.spray { background: var(--tag-p); }
+  .log-all-dot.ship  { background: var(--tag-s); }
+  .log-all-dot.buy   { background: var(--tag-b); }
+  .log-all-main { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; }
+  .log-all-crop {
+    font-size: 11px;
+    color: var(--green);
+    background: var(--green-light);
+    padding: 1px 6px;
+    border-radius: 20px;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+  .log-all-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .log-all-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  /* ── 明細モーダル ── */
+  .detail-item {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .detail-item-left { font-size: 13px; flex: 1; min-width: 0; }
+  .detail-item-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .detail-item-right {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .detail-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .detail-action-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+  .detail-action-btn.delete { border-color: #e8b8b8; color: var(--red); background: var(--red-light); }
+
+  /* ── タグ ── */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-right: 4px;
+  }
+  .tag.farm  { background: var(--green-light); color: var(--green); }
+  .tag.spray { background: var(--amber-light); color: var(--amber); }
+  .tag.ship  { background: var(--red-light);   color: var(--red); }
+  .tag.buy   { background: var(--blue-light);  color: var(--blue); }
+
+  /* ── マスタリスト ── */
+  .master-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .master-delete-btn {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: var(--red-light);
+    color: var(--red);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── トースト ── */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-back" onclick="location.href='index.html'">← Farm Tools</div>
+    </div>
+    <div class="header-title">
+      📊 原価管理
+      <span id="header-date"></span>
+    </div>
+  </div>
+
+  <!-- スクロールエリア -->
+  <div class="scroll-area">
+
+    <!-- ホーム画面 -->
+    <div class="screen active" id="screen-home">
+      <div class="action-grid">
+        <div class="action-btn green" onclick="openModal('farm')">
+          <div class="btn-icon">🚜</div>
+          <div class="btn-label">農作業</div>
+          <div class="btn-sub">播種・定植・収穫…</div>
+        </div>
+        <div class="action-btn amber" onclick="openModal('spray')">
+          <div class="btn-icon">🧪</div>
+          <div class="btn-label">農薬・肥料</div>
+          <div class="btn-sub">散布・施肥</div>
+        </div>
+        <div class="action-btn red" onclick="openModal('ship')">
+          <div class="btn-icon">📦</div>
+          <div class="btn-label">出荷</div>
+          <div class="btn-sub">販売・出荷記録</div>
+        </div>
+        <div class="action-btn blue" onclick="openModal('buy')">
+          <div class="btn-icon">🛒</div>
+          <div class="btn-label">購入</div>
+          <div class="btn-sub">資材・消耗品</div>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top:24px;">
+        <div class="section-label">今日の記録</div>
+        <div class="log-list" id="today-log-list">
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            <p>今日の記録はまだありません<br>上のボタンから記録を追加しましょう</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 作物画面 -->
+    <div class="screen" id="screen-crops">
+      <div class="crop-filter" id="crop-period-filter">
+        <div class="filter-chip active" onclick="setCropPeriod('month', this)">今月</div>
+        <div class="filter-chip" onclick="setCropPeriod('last', this)">先月</div>
+        <div class="filter-chip" onclick="setCropPeriod('all', this)">全期間</div>
+      </div>
+      <div class="labor-toggle">
+        <span class="labor-label">労働費を含める</span>
+        <div class="toggle on" id="labor-toggle" onclick="toggleLabor()"></div>
+      </div>
+      <div class="crop-cards" id="crop-cards-list"></div>
+    </div>
+
+    <!-- ログ一覧画面 -->
+    <div class="screen" id="screen-logs">
+      <div id="log-all-list" style="padding:16px 20px 0;"></div>
+    </div>
+
+    <!-- 設定画面 -->
+    <div class="screen" id="screen-settings">
+      <div class="setting-section">
+        <div class="section-label" style="margin-bottom:12px;">マスタ設定</div>
+        <div class="setting-group">
+          <div class="setting-row" onclick="openMaster('crop')">
+            <span class="setting-row-label">🌱 作物マスタ</span>
+            <span class="setting-row-value" id="setting-crop-count">0件 <span class="arr">›</span></span>
+          </div>
+          <div class="setting-row" onclick="openMaster('material')">
+            <span class="setting-row-label">🧪 資材マスタ</span>
+            <span class="setting-row-value" id="setting-material-count">0件 <span class="arr">›</span></span>
+          </div>
+        </div>
+        <div class="section-label" style="margin-bottom:12px; margin-top:16px;">原価計算設定</div>
+        <div class="setting-group">
+          <div class="setting-row" onclick="openWage()">
+            <span class="setting-row-label">💴 時給設定</span>
+            <span class="setting-row-value" id="setting-wage-display">¥1,000 / h <span class="arr">›</span></span>
+          </div>
+        </div>
+        <div class="section-label" style="margin-bottom:12px; margin-top:16px;">データ管理</div>
+        <div class="setting-group">
+          <div class="setting-row" onclick="exportCSV()">
+            <span class="setting-row-label">📥 CSVエクスポート</span>
+            <span class="setting-row-value"><span class="arr">›</span></span>
+          </div>
+          <div class="setting-row" style="color:var(--red)" onclick="askReset()">
+            <span class="setting-row-label">🗑️ データをリセット</span>
+            <span class="setting-row-value"><span class="arr">›</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- タブバー -->
+  <div class="tabbar">
+    <div class="tab-item active" id="tab-home" onclick="showScreen('home')">
+      <div class="tab-icon">🏠</div>
+      <span>ホーム</span>
+    </div>
+    <div class="tab-item" id="tab-crops" onclick="showScreen('crops')">
+      <div class="tab-icon">📋</div>
+      <span>作物</span>
+    </div>
+    <div class="tab-item" id="tab-logs" onclick="showScreen('logs')">
+      <div class="tab-icon">📝</div>
+      <span>ログ</span>
+    </div>
+    <div class="tab-item" id="tab-settings" onclick="showScreen('settings')">
+      <div class="tab-icon">⚙️</div>
+      <span>設定</span>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<!-- ── モーダル：農作業 ── -->
+<div class="modal-overlay" id="modal-farm" onclick="closeModalOutside('farm', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🚜 農作業</div>
+      <button class="modal-close" onclick="closeModal('farm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap">
+          <select class="field-select" id="farm-crop"></select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">作業内容</div>
+        <div class="select-wrap">
+          <select class="field-select" id="farm-work">
+            <option>播種</option>
+            <option>定植</option>
+            <option>管理作業</option>
+            <option>収穫</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">作業時間</div>
+        <div class="time-picker">
+          <div class="time-unit">
+            <input class="time-field-input" type="number" id="farm-hour" min="0" max="23" value="0" placeholder="0">
+            <div class="time-unit-label">時間</div>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-unit">
+            <input class="time-field-input" type="number" id="farm-min" min="0" max="59" step="5" value="0" placeholder="0">
+            <div class="time-unit-label">分</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="farm-memo" type="text" placeholder="例：第2ハウス、A区画...">
+      </div>
+      <button class="btn-submit" onclick="saveFarm()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── モーダル：農薬・肥料 ── -->
+<div class="modal-overlay" id="modal-spray" onclick="closeModalOutside('spray', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🧪 農薬・肥料</div>
+      <button class="modal-close" onclick="closeModal('spray')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap">
+          <select class="field-select" id="spray-crop"></select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">資材</div>
+        <div class="select-wrap">
+          <select class="field-select" id="spray-material"></select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">使用量</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="field-input" id="spray-amount" type="number" placeholder="100" style="flex:1">
+          <div class="select-wrap" style="width:90px;">
+            <select class="field-select" id="spray-unit">
+              <option>ml</option>
+              <option>g</option>
+              <option>kg</option>
+              <option>L</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="spray-memo" type="text" placeholder="希釈倍率など">
+      </div>
+      <button class="btn-submit" onclick="saveSpray()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── モーダル：出荷 ── -->
+<div class="modal-overlay" id="modal-ship" onclick="closeModalOutside('ship', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">📦 出荷</div>
+      <button class="modal-close" onclick="closeModal('ship')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap">
+          <select class="field-select" id="ship-crop"></select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">数量</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="field-input" id="ship-qty" type="number" placeholder="10" style="flex:1">
+          <div class="select-wrap" style="width:90px;">
+            <select class="field-select" id="ship-unit">
+              <option>kg</option>
+              <option>箱</option>
+              <option>個</option>
+              <option>袋</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">単価（円 / 単位）</div>
+        <input class="field-input" id="ship-price" type="number" placeholder="300">
+      </div>
+      <div>
+        <div class="field-label">出荷先（任意）</div>
+        <input class="field-input" id="ship-dest" type="text" placeholder="例：JA、直売所...">
+      </div>
+      <button class="btn-submit" onclick="saveShip()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── モーダル：購入 ── -->
+<div class="modal-overlay" id="modal-buy" onclick="closeModalOutside('buy', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🛒 購入</div>
+      <button class="modal-close" onclick="closeModal('buy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">品名</div>
+        <input class="field-input" id="buy-name" type="text" placeholder="例：ダコニール、マルチシート...">
+      </div>
+      <div>
+        <div class="field-label">作物（任意）</div>
+        <div class="select-wrap">
+          <select class="field-select" id="buy-crop"></select>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px;">選択すると該当作物の資材費に計上されます</div>
+      </div>
+      <div>
+        <div class="field-label">カテゴリ</div>
+        <div class="select-wrap">
+          <select class="field-select" id="buy-category">
+            <option>農薬</option>
+            <option>肥料</option>
+            <option>種苗費</option>
+            <option>資材</option>
+            <option>消耗品</option>
+            <option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">金額（円）</div>
+        <input class="field-input" id="buy-price" type="number" placeholder="3200">
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="buy-memo" type="text" placeholder="購入先、数量など">
+      </div>
+      <button class="btn-submit" onclick="saveBuy()">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 編集モーダル：農作業 ── -->
+<div class="modal-overlay" id="modal-edit-farm" onclick="closeModalOutside('edit-farm', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✏️ 農作業 編集</div>
+      <button class="modal-close" onclick="closeModal('edit-farm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap"><select class="field-select" id="edit-farm-crop"></select></div>
+      </div>
+      <div>
+        <div class="field-label">作業内容</div>
+        <div class="select-wrap">
+          <select class="field-select" id="edit-farm-work">
+            <option>播種</option><option>定植</option><option>管理作業</option><option>収穫</option><option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">作業時間</div>
+        <div class="time-picker">
+          <div class="time-unit">
+            <input class="time-field-input" type="number" id="edit-farm-hour" min="0" max="23" value="0">
+            <div class="time-unit-label">時間</div>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-unit">
+            <input class="time-field-input" type="number" id="edit-farm-min" min="0" max="59" step="5" value="0">
+            <div class="time-unit-label">分</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="edit-farm-memo" type="text">
+      </div>
+      <button class="btn-submit" onclick="updateEntry()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 編集モーダル：農薬・肥料 ── -->
+<div class="modal-overlay" id="modal-edit-spray" onclick="closeModalOutside('edit-spray', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✏️ 農薬・肥料 編集</div>
+      <button class="modal-close" onclick="closeModal('edit-spray')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap"><select class="field-select" id="edit-spray-crop"></select></div>
+      </div>
+      <div>
+        <div class="field-label">資材</div>
+        <div class="select-wrap"><select class="field-select" id="edit-spray-material"></select></div>
+      </div>
+      <div>
+        <div class="field-label">使用量</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="field-input" id="edit-spray-amount" type="number" style="flex:1">
+          <div class="select-wrap" style="width:90px;">
+            <select class="field-select" id="edit-spray-unit">
+              <option>ml</option><option>g</option><option>kg</option><option>L</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="edit-spray-memo" type="text">
+      </div>
+      <button class="btn-submit" onclick="updateEntry()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 編集モーダル：出荷 ── -->
+<div class="modal-overlay" id="modal-edit-ship" onclick="closeModalOutside('edit-ship', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✏️ 出荷 編集</div>
+      <button class="modal-close" onclick="closeModal('edit-ship')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">作物</div>
+        <div class="select-wrap"><select class="field-select" id="edit-ship-crop"></select></div>
+      </div>
+      <div>
+        <div class="field-label">数量</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="field-input" id="edit-ship-qty" type="number" style="flex:1">
+          <div class="select-wrap" style="width:90px;">
+            <select class="field-select" id="edit-ship-unit">
+              <option>kg</option><option>箱</option><option>個</option><option>袋</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">単価（円 / 単位）</div>
+        <input class="field-input" id="edit-ship-price" type="number">
+      </div>
+      <div>
+        <div class="field-label">出荷先（任意）</div>
+        <input class="field-input" id="edit-ship-dest" type="text">
+      </div>
+      <button class="btn-submit" onclick="updateEntry()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 編集モーダル：購入 ── -->
+<div class="modal-overlay" id="modal-edit-buy" onclick="closeModalOutside('edit-buy', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">✏️ 購入 編集</div>
+      <button class="modal-close" onclick="closeModal('edit-buy')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">品名</div>
+        <input class="field-input" id="edit-buy-name" type="text">
+      </div>
+      <div>
+        <div class="field-label">作物（任意）</div>
+        <div class="select-wrap">
+          <select class="field-select" id="edit-buy-crop"></select>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px;">選択すると該当作物の資材費に計上されます</div>
+      </div>
+      <div>
+        <div class="field-label">カテゴリ</div>
+        <div class="select-wrap">
+          <select class="field-select" id="edit-buy-category">
+            <option>農薬</option><option>肥料</option><option>種苗費</option><option>資材</option><option>消耗品</option><option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">金額（円）</div>
+        <input class="field-input" id="edit-buy-price" type="number">
+      </div>
+      <div>
+        <div class="field-label">メモ（任意）</div>
+        <input class="field-input" id="edit-buy-memo" type="text">
+      </div>
+      <button class="btn-submit" onclick="updateEntry()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 明細モーダル ── -->
+<div class="modal-overlay" id="modal-detail" onclick="closeModalOutside('detail', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">明細</div>
+      <button class="modal-close" onclick="closeModal('detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="detail-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 削除確認モーダル ── -->
+<div class="modal-overlay" id="modal-delete-confirm" onclick="closeModalOutside('delete-confirm', event)">
+  <div class="modal" style="padding-bottom:32px;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">🗑️ 削除の確認</div>
+      <button class="modal-close" onclick="closeModal('delete-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;" id="delete-confirm-text">このログを削除しますか？</p>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-submit" style="background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);" onclick="closeModal('delete-confirm')">キャンセル</button>
+        <button class="btn-submit" style="background:var(--red);" onclick="confirmDelete()">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── リセット確認モーダル ── -->
+<div class="modal-overlay" id="modal-reset-confirm" onclick="closeModalOutside('reset-confirm', event)">
+  <div class="modal" style="padding-bottom:32px;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">⚠️ データリセット</div>
+      <button class="modal-close" onclick="closeModal('reset-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;">すべての記録・マスタ・設定を削除します。<br>この操作は<strong style="color:var(--red)">元に戻せません</strong>。本当に削除しますか？</p>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-submit" style="background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);" onclick="closeModal('reset-confirm')">キャンセル</button>
+        <button class="btn-submit" style="background:var(--red);" onclick="confirmReset()">すべて削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── マスタ設定モーダル ── -->
+<div class="modal-overlay" id="modal-master" onclick="closeModalOutside('master', event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="master-title">🌱 作物マスタ</div>
+      <button class="modal-close" onclick="closeModal('master')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="master-list"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input class="field-input" id="master-new-input" type="text" placeholder="新しい項目を入力..." style="flex:1;">
+        <button class="btn-submit" style="width:auto;padding:12px 18px;" onclick="addMasterItem()">追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 時給設定モーダル ── -->
+<div class="modal-overlay" id="modal-wage" onclick="closeModalOutside('wage', event)">
+  <div class="modal" style="padding-bottom:32px;" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">💴 時給設定</div>
+      <button class="modal-close" onclick="closeModal('wage')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">時給（円 / 時間）</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="field-input" id="wage-input" type="number" placeholder="1000" style="flex:1;font-size:20px;font-family:'DM Mono',monospace;">
+          <span style="font-size:14px;color:var(--text3);">円 / h</span>
+        </div>
+      </div>
+      <button class="btn-submit" onclick="saveWage()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  localStorage キー（farmtools_cost_ プレフィックス）
+// ══════════════════════════════════════════
+const KEYS = {
+  logs:     'farmtools_cost_logs',
+  crops:    'farmtools_cost_crops',
+  materials:'farmtools_cost_materials',
+  wage:     'farmtools_cost_wage',
+  laborOn:  'farmtools_cost_laboron',
+};
+
+// ══════════════════════════════════════════
+//  状態
+// ══════════════════════════════════════════
+let logs      = [];
+let cropMaster= [];
+let matMaster = [];
+let wage      = 1000;
+let laborOn   = true;
+let cropPeriod= 'month'; // 'month' | 'last' | 'all'
+let pendingDeleteId = null;
+let editingId = null;
+let currentDetailCrop = null;
+
+// ══════════════════════════════════════════
+//  初期化
+// ══════════════════════════════════════════
+function init() {
+  logs      = JSON.parse(localStorage.getItem(KEYS.logs) || '[]');
+  cropMaster= JSON.parse(localStorage.getItem(KEYS.crops) || '["トマト","きゅうり","なす"]');
+  matMaster = JSON.parse(localStorage.getItem(KEYS.materials) || '["ダコニール","モスピラン","液体肥料A","苦土石灰"]');
+  wage      = parseInt(localStorage.getItem(KEYS.wage) || '1000');
+  laborOn   = localStorage.getItem(KEYS.laborOn) !== 'false';
+
+  // 時刻表示
+  const now = new Date();
+  const days = ['日','月','火','水','木','金','土'];
+  document.getElementById('header-date').textContent =
+    `${now.getMonth()+1}月${now.getDate()}日 ${days[now.getDay()]}曜日`;
+
+  // UI更新
+  updateLaborToggle();
+  updateSettingsDisplay();
+  renderTodayLogs();
+}
+
+// ══════════════════════════════════════════
+//  永続化
+// ══════════════════════════════════════════
+function save() {
+  localStorage.setItem(KEYS.logs,      JSON.stringify(logs));
+  localStorage.setItem(KEYS.crops,     JSON.stringify(cropMaster));
+  localStorage.setItem(KEYS.materials, JSON.stringify(matMaster));
+  localStorage.setItem(KEYS.wage,      wage);
+  localStorage.setItem(KEYS.laborOn,   laborOn);
+}
+
+// ══════════════════════════════════════════
+//  日時ユーティリティ
+// ══════════════════════════════════════════
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+function nowTimeStr() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function nextId() {
+  return logs.length > 0 ? Math.max(...logs.map(l=>l.id)) + 1 : 1;
+}
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr.replace(/\//g, '-'));
+  const days = ['日','月','火','水','木','金','土'];
+  return `${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
+}
+function getMonthStr(offset = 0) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════
+//  タブ切り替え
+// ══════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+  if (name === 'logs')  renderAllLogs();
+  if (name === 'crops') renderCropCards();
+}
+
+// ══════════════════════════════════════════
+//  モーダル
+// ══════════════════════════════════════════
+function openModal(type) {
+  document.getElementById('modal-' + type).classList.add('open');
+}
+function closeModal(type) {
+  document.getElementById('modal-' + type).classList.remove('open');
+}
+function closeModalOutside(type, event) {
+  if (event.target === document.getElementById('modal-' + type)) closeModal(type);
+}
+
+// ══════════════════════════════════════════
+//  作物セレクト同期
+// ══════════════════════════════════════════
+function refreshCropSelects() {
+  const ids = ['farm-crop','spray-crop','ship-crop',
+               'edit-farm-crop','edit-spray-crop','edit-ship-crop'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = cropMaster.map(c => `<option>${c}</option>`).join('');
+    if (cropMaster.includes(prev)) el.value = prev;
+  });
+  // 購入モーダル：先頭に「指定なし」を追加
+  const buyIds = ['buy-crop','edit-buy-crop'];
+  buyIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = '<option value="">指定なし（共通コスト）</option>' +
+      cropMaster.map(c => `<option>${c}</option>`).join('');
+    if (prev && cropMaster.includes(prev)) el.value = prev;
+  });
+}
+function refreshMatSelects() {
+  const ids = ['spray-material','edit-spray-material'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = matMaster.map(m => `<option>${m}</option>`).join('');
+    if (matMaster.includes(prev)) el.value = prev;
+  });
+}
+function updateSettingsDisplay() {
+  document.getElementById('setting-crop-count').innerHTML =
+    cropMaster.length + '件 <span class="arr">›</span>';
+  document.getElementById('setting-material-count').innerHTML =
+    matMaster.length + '件 <span class="arr">›</span>';
+  document.getElementById('setting-wage-display').innerHTML =
+    '¥' + wage.toLocaleString() + ' / h <span class="arr">›</span>';
+}
+
+// ══════════════════════════════════════════
+//  記録ボタン → 保存
+// ══════════════════════════════════════════
+function openModal(type) {
+  refreshCropSelects();
+  refreshMatSelects();
+  // フォームリセット
+  if (type === 'farm')  { document.getElementById('farm-hour').value=0; document.getElementById('farm-min').value=0; document.getElementById('farm-memo').value=''; }
+  if (type === 'spray') { document.getElementById('spray-amount').value=''; document.getElementById('spray-memo').value=''; }
+  if (type === 'ship')  { document.getElementById('ship-qty').value=''; document.getElementById('ship-price').value=''; document.getElementById('ship-dest').value=''; }
+  if (type === 'buy')   { document.getElementById('buy-name').value=''; document.getElementById('buy-crop').value=''; document.getElementById('buy-price').value=''; document.getElementById('buy-memo').value=''; }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+
+function saveFarm() {
+  const crop = document.getElementById('farm-crop').value;
+  const work = document.getElementById('farm-work').value;
+  const hour = parseInt(document.getElementById('farm-hour').value) || 0;
+  const min  = parseInt(document.getElementById('farm-min').value)  || 0;
+  const memo = document.getElementById('farm-memo').value.trim();
+  if (!crop) { showToast('作物を選択してください'); return; }
+  const totalMin = hour * 60 + min;
+  const rawH = totalMin / 60;
+  logs.unshift({
+    id: nextId(), type: 'farm', date: todayStr(), time: nowTimeStr(),
+    crop, title: work,
+    value: `${hour}時間${min > 0 ? min + '分' : ''}`,
+    rawValue: rawH, unit: 'h', memo
+  });
+  save(); closeModal('farm');
+  renderTodayLogs(); showToast('農作業を記録しました ✅');
+}
+
+function saveSpray() {
+  const crop     = document.getElementById('spray-crop').value;
+  const material = document.getElementById('spray-material').value;
+  const amount   = parseFloat(document.getElementById('spray-amount').value);
+  const unit     = document.getElementById('spray-unit').value;
+  const memo     = document.getElementById('spray-memo').value.trim();
+  if (!crop)   { showToast('作物を選択してください'); return; }
+  if (!material){ showToast('資材を選択してください'); return; }
+  if (!amount)  { showToast('使用量を入力してください'); return; }
+  logs.unshift({
+    id: nextId(), type: 'spray', date: todayStr(), time: nowTimeStr(),
+    crop, title: material,
+    value: `${amount}${unit}`,
+    rawValue: amount, unit, memo
+  });
+  save(); closeModal('spray');
+  renderTodayLogs(); showToast('農薬・肥料を記録しました ✅');
+}
+
+function saveShip() {
+  const crop  = document.getElementById('ship-crop').value;
+  const qty   = parseFloat(document.getElementById('ship-qty').value);
+  const unit  = document.getElementById('ship-unit').value;
+  const price = parseInt(document.getElementById('ship-price').value);
+  const dest  = document.getElementById('ship-dest').value.trim();
+  if (!crop)  { showToast('作物を選択してください'); return; }
+  if (!qty)   { showToast('数量を入力してください'); return; }
+  if (!price) { showToast('単価を入力してください'); return; }
+  const total = qty * price;
+  logs.unshift({
+    id: nextId(), type: 'ship', date: todayStr(), time: nowTimeStr(),
+    crop, title: dest || '出荷',
+    value: `¥${total.toLocaleString()}`,
+    rawValue: total, unit: '円',
+    memo: `${qty}${unit} × ¥${price}`
+  });
+  save(); closeModal('ship');
+  renderTodayLogs(); showToast('出荷を記録しました ✅');
+}
+
+function saveBuy() {
+  const name     = document.getElementById('buy-name').value.trim();
+  const crop     = document.getElementById('buy-crop').value;
+  const category = document.getElementById('buy-category').value;
+  const price    = parseInt(document.getElementById('buy-price').value);
+  const memo     = document.getElementById('buy-memo').value.trim();
+  if (!name)  { showToast('品名を入力してください'); return; }
+  if (!price) { showToast('金額を入力してください'); return; }
+  logs.unshift({
+    id: nextId(), type: 'buy', date: todayStr(), time: nowTimeStr(),
+    crop: crop || '', title: name,
+    value: `¥${price.toLocaleString()}`,
+    rawValue: price, unit: '円',
+    memo: category + (memo ? ' / ' + memo : '')
+  });
+  save(); closeModal('buy');
+  renderTodayLogs(); showToast('購入を記録しました ✅');
+}
+
+// ══════════════════════════════════════════
+//  今日のログ描画
+// ══════════════════════════════════════════
+function renderTodayLogs() {
+  const today = todayStr();
+  const todayLogs = logs.filter(l => l.date === today);
+  const el = document.getElementById('today-log-list');
+  if (todayLogs.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>今日の記録はまだありません<br>上のボタンから記録を追加しましょう</p></div>`;
+    return;
+  }
+  el.innerHTML = todayLogs.map(log => `
+    <div class="log-item">
+      <div class="log-type-dot ${log.type}"></div>
+      <div class="log-content">
+        <div class="log-main">${log.title}${log.crop ? `<span class="log-crop">${log.crop}</span>` : ''}</div>
+        <div class="log-sub">${log.value}${log.memo ? ' · ' + log.memo : ''}</div>
+      </div>
+      <div class="log-time">${log.time}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  全ログ描画
+// ══════════════════════════════════════════
+function renderAllLogs() {
+  const container = document.getElementById('log-all-list');
+  if (logs.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>記録がありません</p></div>`;
+    return;
+  }
+  const groups = {};
+  logs.forEach(log => {
+    if (!groups[log.date]) groups[log.date] = [];
+    groups[log.date].push(log);
+  });
+  container.innerHTML = Object.entries(groups).map(([date, items]) => `
+    <div class="log-date-group">
+      <div class="log-date-header">${formatDateLabel(date)}</div>
+      ${items.map(log => `
+        <div class="log-all-item">
+          <div class="log-all-dot ${log.type}"></div>
+          <div class="log-all-main">
+            ${log.title}${log.crop ? `<span class="log-all-crop">${log.crop}</span>` : ''}
+            <div class="log-all-sub">${log.memo || ''}</div>
+          </div>
+          <div class="log-all-value">${log.value}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  作物タブ
+// ══════════════════════════════════════════
+function setCropPeriod(period, el) {
+  cropPeriod = period;
+  document.querySelectorAll('#crop-period-filter .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderCropCards();
+}
+
+function getFilteredLogs() {
+  if (cropPeriod === 'all') return logs;
+  const offset = cropPeriod === 'month' ? 0 : -1;
+  const prefix = getMonthStr(offset);
+  return logs.filter(l => l.date.startsWith(prefix));
+}
+
+function renderCropCards() {
+  const filtered = getFilteredLogs();
+  const el = document.getElementById('crop-cards-list');
+  if (cropMaster.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">🌱</div><p>設定から作物マスタを登録してください</p></div>`;
+    return;
+  }
+  el.innerHTML = cropMaster.map(crop => {
+    const cropLogs = filtered.filter(l => l.crop === crop);
+    // 労働費
+    const laborHours = cropLogs.filter(l => l.type === 'farm').reduce((s,l) => s + l.rawValue, 0);
+    const laborCost  = Math.round(laborHours * wage);
+    // 資材費（作物紐づけ購入ログ）
+    const matCost = filtered.filter(l => l.type === 'buy' && l.crop === crop)
+                            .reduce((s,l) => s + l.rawValue, 0);
+    // 購入ログのうち作物未紐づけは集計対象外（共通コスト）
+    // 売上
+    const revenue    = cropLogs.filter(l => l.type === 'ship').reduce((s,l) => s + l.rawValue, 0);
+    // 表示用コスト
+    const laborPart = laborOn ? laborCost : 0;
+    const cost = laborPart + matCost;
+    const profit = revenue - cost;
+    const profitStr = profit >= 0
+      ? `¥ ${profit.toLocaleString()}`
+      : `▲ ¥ ${Math.abs(profit).toLocaleString()}`;
+    const profitClass = profit >= 0 ? 'plus' : 'minus';
+    return `
+      <div class="crop-card" onclick="openDetail('${crop}')">
+        <div class="crop-card-header">
+          <div class="crop-name">${crop}</div>
+          <div class="crop-arrow">→</div>
+        </div>
+        <div class="crop-card-body">
+          <div class="cost-row">
+            <span class="cost-label">労働費</span>
+            <span class="cost-value minus">¥ ${laborCost.toLocaleString()}</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">資材費</span>
+            <span class="cost-value minus">¥ ${matCost.toLocaleString()}</span>
+          </div>
+          <div class="cost-divider"></div>
+          <div class="cost-row">
+            <span class="cost-label">コスト計</span>
+            <span class="cost-value minus">¥ ${cost.toLocaleString()}</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">売上</span>
+            <span class="cost-value plus">¥ ${revenue.toLocaleString()}</span>
+          </div>
+          <div class="cost-divider"></div>
+          <div class="cost-row total">
+            <span class="cost-label">粗利</span>
+            <span class="cost-value ${profitClass}">${profitStr}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  労働費トグル
+// ══════════════════════════════════════════
+function toggleLabor() {
+  laborOn = !laborOn;
+  save();
+  updateLaborToggle();
+  renderCropCards();
+}
+function updateLaborToggle() {
+  const t = document.getElementById('labor-toggle');
+  t.className = 'toggle ' + (laborOn ? 'on' : 'off');
+}
+
+// ══════════════════════════════════════════
+//  明細モーダル
+// ══════════════════════════════════════════
+function openDetail(crop) {
+  currentDetailCrop = crop;
+  document.getElementById('detail-title').textContent = crop + ' 明細';
+  renderDetailList();
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function renderDetailList() {
+  const cropLogs = logs.filter(l => l.crop === currentDetailCrop || (l.type==='buy' && false));
+  const el = document.getElementById('detail-list');
+  if (cropLogs.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">記録がありません</div>';
+    return;
+  }
+  const typeLabel = { farm:'農作業', spray:'農薬', ship:'出荷', buy:'購入' };
+  el.innerHTML = cropLogs.map(log => `
+    <div class="detail-item" id="detail-item-${log.id}">
+      <div class="detail-item-left" style="flex:1;">
+        <div><span class="tag ${log.type}">${typeLabel[log.type]}</span>${log.title}</div>
+        <div class="detail-item-date">${log.date.substring(5)} ${log.time}</div>
+      </div>
+      <div class="detail-item-right">${log.value}${log.memo ? '<br><span style="font-size:11px;color:var(--text3)">'+log.memo+'</span>' : ''}</div>
+      <div class="detail-actions">
+        <button class="detail-action-btn" onclick="startEdit(${log.id})" title="編集">✏️</button>
+        <button class="detail-action-btn delete" onclick="askDelete(${log.id}, '${typeLabel[log.type]}', '${log.title.replace(/'/g, "\\'")}')" title="削除">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  編集
+// ══════════════════════════════════════════
+function startEdit(id) {
+  const log = logs.find(l => l.id === id);
+  if (!log) return;
+  editingId = id;
+  refreshCropSelects();
+  refreshMatSelects();
+  closeModal('detail');
+
+  if (log.type === 'farm') {
+    const totalMin = Math.round(log.rawValue * 60);
+    document.getElementById('edit-farm-crop').value = log.crop;
+    document.getElementById('edit-farm-work').value = log.title;
+    document.getElementById('edit-farm-hour').value = Math.floor(totalMin / 60);
+    document.getElementById('edit-farm-min').value  = totalMin % 60;
+    document.getElementById('edit-farm-memo').value = log.memo || '';
+    openModal('edit-farm');
+  } else if (log.type === 'spray') {
+    document.getElementById('edit-spray-crop').value     = log.crop;
+    document.getElementById('edit-spray-material').value = log.title;
+    document.getElementById('edit-spray-amount').value   = log.rawValue;
+    document.getElementById('edit-spray-unit').value     = log.unit;
+    document.getElementById('edit-spray-memo').value     = log.memo || '';
+    openModal('edit-spray');
+  } else if (log.type === 'ship') {
+    const parts = (log.memo || '').split(' × ¥');
+    const qtyUnit = parts[0] || '';
+    const price   = parts[1] ? parseInt(parts[1]) : 0;
+    const qtyMatch = qtyUnit.match(/^([\d.]+)(.+)$/);
+    document.getElementById('edit-ship-crop').value  = log.crop;
+    document.getElementById('edit-ship-qty').value   = qtyMatch ? qtyMatch[1] : '';
+    document.getElementById('edit-ship-unit').value  = qtyMatch ? qtyMatch[2] : 'kg';
+    document.getElementById('edit-ship-price').value = price;
+    document.getElementById('edit-ship-dest').value  = log.title !== '出荷' ? log.title : '';
+    openModal('edit-ship');
+  } else if (log.type === 'buy') {
+    const catMemo = (log.memo || '').split(' / ');
+    document.getElementById('edit-buy-name').value     = log.title;
+    document.getElementById('edit-buy-crop').value     = log.crop || '';
+    document.getElementById('edit-buy-category').value = catMemo[0] || '農薬';
+    document.getElementById('edit-buy-price').value    = log.rawValue;
+    document.getElementById('edit-buy-memo').value     = catMemo[1] || '';
+    openModal('edit-buy');
+  }
+}
+
+function updateEntry() {
+  const log = logs.find(l => l.id === editingId);
+  if (!log) return;
+
+  if (log.type === 'farm') {
+    const hour = parseInt(document.getElementById('edit-farm-hour').value) || 0;
+    const min  = parseInt(document.getElementById('edit-farm-min').value)  || 0;
+    log.crop     = document.getElementById('edit-farm-crop').value;
+    log.title    = document.getElementById('edit-farm-work').value;
+    log.memo     = document.getElementById('edit-farm-memo').value.trim();
+    log.rawValue = (hour * 60 + min) / 60;
+    log.value    = `${hour}時間${min > 0 ? min + '分' : ''}`;
+    log.unit     = 'h';
+    closeModal('edit-farm');
+  } else if (log.type === 'spray') {
+    const amount = parseFloat(document.getElementById('edit-spray-amount').value);
+    const unit   = document.getElementById('edit-spray-unit').value;
+    log.crop     = document.getElementById('edit-spray-crop').value;
+    log.title    = document.getElementById('edit-spray-material').value;
+    log.rawValue = amount;
+    log.unit     = unit;
+    log.value    = `${amount}${unit}`;
+    log.memo     = document.getElementById('edit-spray-memo').value.trim();
+    closeModal('edit-spray');
+  } else if (log.type === 'ship') {
+    const qty   = parseFloat(document.getElementById('edit-ship-qty').value);
+    const unit  = document.getElementById('edit-ship-unit').value;
+    const price = parseInt(document.getElementById('edit-ship-price').value);
+    const dest  = document.getElementById('edit-ship-dest').value.trim();
+    const total = qty * price;
+    log.crop     = document.getElementById('edit-ship-crop').value;
+    log.title    = dest || '出荷';
+    log.rawValue = total;
+    log.value    = `¥${total.toLocaleString()}`;
+    log.unit     = '円';
+    log.memo     = `${qty}${unit} × ¥${price}`;
+    closeModal('edit-ship');
+  } else if (log.type === 'buy') {
+    const price    = parseInt(document.getElementById('edit-buy-price').value);
+    const category = document.getElementById('edit-buy-category').value;
+    const memo     = document.getElementById('edit-buy-memo').value.trim();
+    log.title    = document.getElementById('edit-buy-name').value.trim();
+    log.crop     = document.getElementById('edit-buy-crop').value || '';
+    log.rawValue = price;
+    log.value    = `¥${price.toLocaleString()}`;
+    log.unit     = '円';
+    log.memo     = category + (memo ? ' / ' + memo : '');
+    closeModal('edit-buy');
+  }
+
+  save();
+  renderTodayLogs();
+  showToast('編集しました ✅');
+  // 明細再表示
+  if (currentDetailCrop) {
+    setTimeout(() => {
+      renderDetailList();
+      openModal('detail');
+    }, 300);
+  }
+}
+
+// ══════════════════════════════════════════
+//  削除
+// ══════════════════════════════════════════
+function askDelete(id, typeLabel, title) {
+  pendingDeleteId = id;
+  document.getElementById('delete-confirm-text').textContent =
+    `「${typeLabel}：${title}」を削除しますか？この操作は元に戻せません。`;
+  openModal('delete-confirm');
+}
+
+function confirmDelete() {
+  if (pendingDeleteId === null) return;
+  logs = logs.filter(l => l.id !== pendingDeleteId);
+  pendingDeleteId = null;
+  closeModal('delete-confirm');
+  save();
+  renderTodayLogs();
+  renderDetailList();
+  renderCropCards();
+  showToast('削除しました');
+}
+
+// ══════════════════════════════════════════
+//  マスタ設定
+// ══════════════════════════════════════════
+let masterMode = 'crop';
+
+function openMaster(mode) {
+  masterMode = mode;
+  const titles = { crop: '🌱 作物マスタ', material: '🧪 資材マスタ' };
+  document.getElementById('master-title').textContent = titles[mode];
+  document.getElementById('master-new-input').value = '';
+  const placeholders = { crop: '例：トマト、きゅうり…', material: '例：ダコニール…' };
+  document.getElementById('master-new-input').placeholder = placeholders[mode];
+  renderMasterList();
+  openModal('master');
+}
+
+function renderMasterList() {
+  const data = masterMode === 'crop' ? cropMaster : matMaster;
+  const list = document.getElementById('master-list');
+  if (data.length === 0) {
+    list.innerHTML = '<p style="font-size:13px;color:var(--text3);text-align:center;padding:12px;">まだ登録がありません</p>';
+  } else {
+    list.innerHTML = data.map((item, idx) => `
+      <div class="master-item">
+        <span>${item}</span>
+        <button class="master-delete-btn" onclick="deleteMasterItem(${idx})">✕</button>
+      </div>
+    `).join('');
+  }
+  updateSettingsDisplay();
+}
+
+function addMasterItem() {
+  const input = document.getElementById('master-new-input');
+  const val = input.value.trim();
+  if (!val) return;
+  if (masterMode === 'crop') { if (!cropMaster.includes(val)) cropMaster.push(val); }
+  else                       { if (!matMaster.includes(val))  matMaster.push(val);  }
+  input.value = '';
+  save();
+  renderMasterList();
+  refreshCropSelects();
+  refreshMatSelects();
+}
+
+function deleteMasterItem(idx) {
+  if (masterMode === 'crop') cropMaster.splice(idx, 1);
+  else                       matMaster.splice(idx, 1);
+  save();
+  renderMasterList();
+  refreshCropSelects();
+  refreshMatSelects();
+}
+
+// ══════════════════════════════════════════
+//  時給設定
+// ══════════════════════════════════════════
+function openWage() {
+  document.getElementById('wage-input').value = wage;
+  openModal('wage');
+}
+
+function saveWage() {
+  const val = parseInt(document.getElementById('wage-input').value);
+  if (!val || val < 0) { showToast('正しい金額を入力してください'); return; }
+  wage = val;
+  save();
+  updateSettingsDisplay();
+  closeModal('wage');
+  showToast('時給を保存しました ✅');
+}
+
+// ══════════════════════════════════════════
+//  CSVエクスポート
+// ══════════════════════════════════════════
+function exportCSV() {
+  if (logs.length === 0) { showToast('記録がありません'); return; }
+  const header = ['ID','種別','日付','時刻','作物','内容','値','生数値','単位','メモ'];
+  const typeMap = { farm:'農作業', spray:'農薬・肥料', ship:'出荷', buy:'購入' };
+  const rows = logs.map(l => [
+    l.id, typeMap[l.type]||l.type, l.date, l.time,
+    l.crop, l.title, l.value, l.rawValue, l.unit, l.memo||''
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+  const csv = '\uFEFF' + [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `farmtools_cost_${todayStr().replace(/\//g,'-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSVをダウンロードしました');
+}
+
+// ══════════════════════════════════════════
+//  データリセット
+// ══════════════════════════════════════════
+function askReset() { openModal('reset-confirm'); }
+
+function confirmReset() {
+  Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+  closeModal('reset-confirm');
+  logs = []; cropMaster = ['トマト','きゅうり','なす'];
+  matMaster = ['ダコニール','モスピラン','液体肥料A','苦土石灰'];
+  wage = 1000; laborOn = true;
+  save();
+  updateSettingsDisplay();
+  updateLaborToggle();
+  renderTodayLogs();
+  showToast('データをリセットしました');
+}
+
+// ══════════════════════════════════════════
+//  トースト
+// ══════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── 起動 ──
+init();
+</script>
+</body>
+</html>
