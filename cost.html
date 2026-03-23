@@ -1507,7 +1507,9 @@ function renderAllLogs() {
   container.innerHTML = Object.entries(groups).map(([date, items]) => `
     <div class="log-date-group">
       <div class="log-date-header">${formatDateLabel(date)}</div>
-      ${items.map(log => `
+      ${items.map(log => {
+        const typeLabel = {farm:'農作業',spray:'農薬',ship:'出荷',buy:'購入'};
+        return `
         <div class="log-all-item">
           <div class="log-all-dot ${log.type}"></div>
           <div class="log-all-main">
@@ -1515,8 +1517,12 @@ function renderAllLogs() {
             <div class="log-all-sub">${log.memo || ''}</div>
           </div>
           <div class="log-all-value">${log.value}</div>
-        </div>
-      `).join('')}
+          <div class="detail-actions">
+            <button class="detail-action-btn" onclick="startEdit(${log.id})" title="編集">✏️</button>
+            <button class="detail-action-btn delete" onclick="askDelete(${log.id}, '${typeLabel[log.type]}', '${log.title.replace(/'/g, "\\'")}')" title="削除">🗑</button>
+          </div>
+        </div>`;
+      }).join('')}
     </div>
   `).join('');
 }
@@ -1624,7 +1630,7 @@ function openDetail(crop) {
 }
 
 function renderDetailList() {
-  const cropLogs = logs.filter(l => l.crop === currentDetailCrop || (l.type==='buy' && false));
+  const cropLogs = logs.filter(l => l.crop === currentDetailCrop);
   const el = document.getElementById('detail-list');
   if (cropLogs.length === 0) {
     el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">記録がありません</div>';
@@ -1746,6 +1752,7 @@ function updateEntry() {
 
   save();
   renderTodayLogs();
+  renderAllLogs();
   showToast('編集しました ✅');
   // 明細再表示
   if (currentDetailCrop) {
@@ -1773,6 +1780,7 @@ function confirmDelete() {
   closeModal('delete-confirm');
   save();
   renderTodayLogs();
+  renderAllLogs();
   renderDetailList();
   renderCropCards();
   showToast('削除しました');
