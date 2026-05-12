@@ -3,366 +3,454 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>grün farm - 栽培日数管理</title>
+<title>grün farm - 栽培管理</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap');
-  :root {
-    --brown: #5c3d1e;
-    --green: #5a9e3a;
-    --green-light: #7cc45a;
-    --green-pale: #e8f5e0;
-    --cream: #f7f3ec;
-    --cream-dark: #ede8df;
-    --text: #3a2a14;
-    --text-light: #7a6040;
-    --white: #fff;
-    --shadow: 0 2px 12px rgba(60,40,10,0.10);
-    --radius: 14px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
-    background: var(--cream);
-    color: var(--text);
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap');
+:root {
+  --brown: #5c3d1e;
+  --green: #5a9e3a;
+  --green-light: #7cc45a;
+  --green-pale: #e8f5e0;
+  --purple: #7b5ea7;
+  --purple-pale: #f0ebf8;
+  --orange: #d4782a;
+  --orange-pale: #fdf0e4;
+  --cream: #f7f3ec;
+  --cream-dark: #ede8df;
+  --text: #3a2a14;
+  --text-light: #7a6040;
+  --white: #fff;
+  --shadow: 0 2px 12px rgba(60,40,10,0.10);
+  --radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
 
-  /* ── HEADER ── */
-  .header {
-    background: var(--brown);
-    padding: 14px 16px 0;
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 3px 16px rgba(30,15,5,0.22);
-  }
-  .header-title-row {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-back-btn {
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding: 2px 0;
-    transition: color 0.15s;
-  }
-  .header-back-btn:active { color: rgba(255,255,255,0.9); }
-  .header-sub {
-    font-size: 26px;
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 0.08em;
-  }
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0;
+  max-width: 480px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  background: var(--cream);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+  overflow: hidden;
+}
+.screen.hidden { transform: translateX(100%); pointer-events: none; }
+.screen.slide-left { transform: translateX(-30%); opacity: 0; pointer-events: none; }
 
-  /* ── TABS ── */
-  .tabs-wrap {
-    display: flex;
-    align-items: stretch;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tabs-wrap::-webkit-scrollbar { display: none; }
-  .tab-btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    padding: 10px 16px;
-    font-size: 16px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.55);
-    cursor: pointer;
-    transition: all 0.18s;
-    white-space: nowrap;
-    font-family: inherit;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .tab-btn.active {
-    color: #fff;
-    border-bottom-color: var(--green-light);
-  }
-  .tab-sort-btns {
-    display: flex; flex-direction: column; gap: 0px;
-    opacity: 0; transition: opacity 0.15s;
-  }
-  .tab-btn.active .tab-sort-btns { opacity: 1; }
-  .tab-sort-btn {
-    background: none; border: none;
-    color: rgba(255,255,255,0.7);
-    font-size: 9px; cursor: pointer; padding: 0 1px;
-    line-height: 1.1;
-  }
-  .tab-sort-btn:hover { color: var(--green-light); }
-  .tab-add-btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    padding: 8px 12px;
-    font-size: 20px;
-    color: rgba(255,255,255,0.45);
-    cursor: pointer;
-    font-weight: 300;
-    transition: color 0.18s;
-  }
-  .tab-add-btn:hover { color: var(--green-light); }
+/* ── HEADER ── */
+.header {
+  background: var(--brown);
+  padding: 14px 16px 12px;
+  flex-shrink: 0;
+  box-shadow: 0 3px 16px rgba(30,15,5,0.22);
+}
+.header-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.header-back {
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  cursor: pointer; white-space: nowrap; padding: 2px 0;
+  transition: color 0.15s; flex-shrink: 0;
+}
+.header-back:active { color: #fff; }
+.header-title {
+  font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 0.06em; flex: 1;
+}
+.header-action {
+  background: none; border: none; color: rgba(255,255,255,0.7);
+  font-size: 22px; cursor: pointer; padding: 2px 6px;
+  font-family: inherit; transition: color 0.15s; flex-shrink: 0;
+}
+.header-action:active { color: #fff; }
 
-  /* ── MAIN ── */
-  .main { padding: 16px 14px 80px; }
+/* ── TOP SCREEN ── */
+.top-body { flex: 1; overflow-y: auto; padding: 16px 14px 80px; }
 
-  /* ── CROP HEADER ── */
-  .crop-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-  .crop-title {
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--brown);
-  }
-  .crop-del-btn {
-    background: none;
-    border: 1.5px solid #d9b8a0;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 13px;
-    color: #c07060;
-    cursor: pointer;
-    font-family: inherit;
-  }
+.crop-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+  display: flex; align-items: center; gap: 12px;
+}
+.crop-card:active { transform: scale(0.98); box-shadow: 0 1px 6px rgba(60,40,10,0.08); }
+.crop-card-icon { font-size: 32px; flex-shrink: 0; }
+.crop-card-body { flex: 1; min-width: 0; }
+.crop-card-name { font-size: 18px; font-weight: 900; color: var(--brown); margin-bottom: 4px; }
+.crop-card-meta { font-size: 12px; color: var(--text-light); }
+.crop-card-arrow { font-size: 18px; color: var(--cream-dark); flex-shrink: 0; }
+.crop-card-actions {
+  display: flex; gap: 6px; flex-shrink: 0;
+}
+.crop-card-btn {
+  background: none; border: 1.5px solid var(--cream-dark);
+  border-radius: 8px; padding: 5px 10px; font-size: 12px;
+  color: var(--text-light); cursor: pointer; font-family: inherit;
+  transition: all 0.15s;
+}
+.crop-card-btn:active { background: var(--cream); }
+.crop-card-btn.del { color: #c07060; border-color: #e0c0b8; }
+.crop-card-btn.del:active { background: #fdf0ee; }
 
-  /* ── SECTION ── */
-  .section {
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 11px 14px 9px;
-    border-bottom: 1.5px solid var(--cream-dark);
-  }
-  .section-title {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-light);
-  }
-  .section-title.elapsed { color: #4a8030; }
-  .section-title.remaining { color: #6a4e90; }
-  .section-title.log { color: #3a6080; }
-  .item-add-btn {
-    background: none; border: none;
-    font-size: 22px; color: var(--green);
-    cursor: pointer; line-height: 1; font-weight: 300;
-  }
+.no-crop {
+  text-align: center; padding: 60px 20px; color: var(--text-light);
+}
+.no-crop-icon { font-size: 48px; margin-bottom: 12px; }
+.no-crop-text { font-size: 16px; margin-bottom: 20px; }
 
-  /* ── DAY ROWS ── */
-  .item-list { padding: 4px 0; }
-  .item-row {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--cream);
-    transition: background 0.15s;
-  }
-  .item-row:last-child { border-bottom: none; }
-  .item-row:hover { background: var(--cream); }
-  .item-label { flex: 1; min-width: 0; }
-  .item-name {
-    font-size: 16px; font-weight: 700; color: var(--text);
-    margin-bottom: 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .item-date-label { font-size: 13px; color: var(--text-light); }
-  .day-badge {
-    display: flex; flex-direction: column; align-items: center; min-width: 54px;
-  }
-  .day-num {
-    font-size: 22px; font-weight: 900; line-height: 1;
-  }
-  .day-num.elapsed { color: #5a9e3a; }
-  .day-num.remaining { color: #7a5ea0; }
-  .day-num.overdue { color: #e05050; }
-  .day-unit { font-size: 13px; color: var(--text-light); margin-top: 1px; }
-  .item-del-btn {
-    background: none; border: none; color: #ccc;
-    font-size: 18px; cursor: pointer; padding: 2px 4px;
-    border-radius: 6px; transition: color 0.2s; font-family: inherit;
-  }
-  .item-del-btn:hover { color: #e05050; }
+.fab {
+  position: fixed; bottom: 24px; right: max(24px, calc(50vw - 480px/2 + 24px));
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--green); color: #fff;
+  border: none; font-size: 28px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(60,40,10,0.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s, background 0.15s;
+  z-index: 50;
+}
+.fab:active { transform: scale(0.93); background: var(--green-light); }
 
-  /* ── LOG SECTION ── */
-  .log-row {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--cream);
-    transition: background 0.15s;
-  }
-  .log-row:last-child { border-bottom: none; }
-  .log-row:hover { background: var(--cream); }
-  .log-date-col {
-    min-width: 80px;
-    font-size: 14px; font-weight: 700; color: var(--text-light);
-    padding-top: 1px;
-    white-space: nowrap;
-  }
-  .log-body { flex: 1; min-width: 0; }
-  .log-action {
-    font-size: 16px; font-weight: 700; color: var(--text);
-    margin-bottom: 3px;
-  }
-  .log-memo {
-    font-size: 13px; color: var(--text-light);
-    line-height: 1.45;
-    word-break: break-all;
-  }
-  .log-actions {
-    display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
-  }
-  .log-edit-btn, .log-del-btn {
-    background: none; border: none; cursor: pointer;
-    font-size: 13px; padding: 4px 8px; border-radius: 5px;
-    font-family: inherit;
-  }
-  .log-edit-btn { color: #7a9060; border: 1px solid #c8dab8; }
-  .log-del-btn  { color: #c08070; border: 1px solid #e0c0b8; }
-  .log-edit-btn:hover { background: #eaf4e0; }
-  .log-del-btn:hover  { background: #fae8e4; }
+/* ── DETAIL SCREEN ── */
+/* スワイプ対応：detail と calendar を横に並べる */
+.swipe-container {
+  flex: 1; display: flex; overflow: hidden; position: relative;
+}
+.swipe-pane {
+  flex: 0 0 100%; width: 100%;
+  overflow-y: auto; padding: 16px 14px 80px;
+  transition: none;
+}
 
-  /* ── EMPTY ── */
-  .empty-state {
-    padding: 18px 14px; text-align: center;
-    color: #bbb; font-size: 14px;
-  }
-  .no-crop {
-    text-align: center; padding: 60px 20px; color: var(--text-light);
-  }
-  .no-crop-icon { font-size: 48px; margin-bottom: 12px; }
-  .no-crop-text { font-size: 16px; }
+/* スワイプインジケーター */
+.swipe-indicator {
+  flex-shrink: 0;
+  display: flex; justify-content: center; gap: 6px;
+  padding: 8px 0 6px;
+  background: var(--brown);
+}
+.swipe-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.3); transition: background 0.2s;
+}
+.swipe-dot.active { background: var(--green-light); }
 
-  /* ── MODAL ── */
-  .modal-bg {
-    display: none; position: fixed; inset: 0;
-    background: rgba(30,15,5,0.40);
-    z-index: 200; align-items: flex-end; justify-content: center;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--white);
-    border-radius: 20px 20px 0 0;
-    padding: 24px 20px 40px;
-    width: 100%; max-width: 480px;
-    animation: slideUp 0.22s ease;
-  }
-  @keyframes slideUp {
-    from { transform: translateY(50px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-  .modal-title {
-    font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 16px;
-  }
-  .modal label {
-    display: block; font-size: 14px; font-weight: 700;
-    color: var(--text-light); margin-bottom: 5px; margin-top: 14px;
-    letter-spacing: 0.06em;
-  }
-  .modal input[type="text"],
-  .modal input[type="date"],
-  .modal textarea {
-    width: 100%;
-    border: 1.5px solid var(--cream-dark);
-    border-radius: 10px;
-    padding: 13px 14px;
-    font-size: 16px; color: var(--text);
-    background: var(--cream); outline: none;
-    transition: border-color 0.2s;
-    font-family: inherit;
-  }
-  .modal textarea { resize: vertical; min-height: 64px; }
-  .modal input:focus, .modal textarea:focus {
-    border-color: var(--green); background: #fff;
-  }
-  .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-cancel {
-    flex: 1; padding: 14px;
-    border: 1.5px solid var(--cream-dark);
-    border-radius: 10px; background: none;
-    color: var(--text-light); font-size: 16px;
-    cursor: pointer; font-family: inherit;
-  }
-  .btn-ok {
-    flex: 2; padding: 14px; border: none;
-    border-radius: 10px; background: var(--green);
-    color: #fff; font-size: 16px; font-weight: 700;
-    cursor: pointer; font-family: inherit; transition: background 0.2s;
-  }
-  .btn-ok:hover { background: var(--green-light); }
+/* ── SECTION ── */
+.section {
+  background: var(--white); border-radius: var(--radius);
+  box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden;
+}
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 14px 9px; border-bottom: 1.5px solid var(--cream-dark);
+}
+.section-title {
+  font-size: 14px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-light);
+}
+.section-title.elapsed { color: #4a8030; }
+.section-title.remaining { color: #6a4e90; }
+.section-title.log { color: #3a6080; }
+.section-title.calendar-title { color: var(--brown); font-size: 16px; }
+.item-add-btn {
+  background: none; border: none; font-size: 22px; color: var(--green);
+  cursor: pointer; line-height: 1; font-family: inherit;
+}
+
+/* ── ITEM ROWS ── */
+.item-list { padding: 4px 0; }
+.item-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid var(--cream);
+  transition: background 0.15s;
+}
+.item-row:last-child { border-bottom: none; }
+.item-row:active { background: var(--cream); }
+.item-label { flex: 1; min-width: 0; cursor: pointer; }
+.item-name {
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item-date-label { font-size: 13px; color: var(--text-light); }
+.day-badge { display: flex; flex-direction: column; align-items: center; min-width: 54px; }
+.day-num { font-size: 22px; font-weight: 900; line-height: 1; }
+.day-num.elapsed { color: #5a9e3a; }
+.day-num.remaining { color: #7a5ea0; }
+.day-num.overdue { color: #e05050; }
+.day-unit { font-size: 13px; color: var(--text-light); margin-top: 1px; }
+.item-del-btn {
+  background: none; border: none; color: #ccc; font-size: 18px;
+  cursor: pointer; padding: 2px 4px; border-radius: 6px;
+  transition: color 0.2s; font-family: inherit;
+}
+.item-del-btn:active { color: #e05050; }
+.empty-state { padding: 18px 14px; text-align: center; color: #bbb; font-size: 14px; }
+
+/* ── LOG ── */
+.log-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 14px; border-bottom: 1px solid var(--cream);
+}
+.log-row:last-child { border-bottom: none; }
+.log-date-col { min-width: 72px; font-size: 13px; font-weight: 700; color: var(--text-light); padding-top: 1px; white-space: nowrap; }
+.log-body { flex: 1; min-width: 0; }
+.log-action { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.log-memo { font-size: 13px; color: var(--text-light); line-height: 1.45; word-break: break-all; }
+.log-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.log-edit-btn, .log-del-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 12px; padding: 4px 8px; border-radius: 5px; font-family: inherit;
+}
+.log-edit-btn { color: #7a9060; border: 1px solid #c8dab8; }
+.log-del-btn  { color: #c08070; border: 1px solid #e0c0b8; }
+
+/* ── CALENDAR PANE ── */
+.cal-header-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.cal-month-nav {
+  background: none; border: none; font-size: 22px;
+  color: var(--brown); cursor: pointer; padding: 2px 10px;
+  border-radius: 8px; font-family: inherit;
+}
+.cal-month-title { font-size: 16px; font-weight: 900; color: var(--brown); }
+.cal-legend { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.cal-legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-light); }
+.cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cal-legend-dot.elapsed { background: var(--green); }
+.cal-legend-dot.remaining { background: var(--purple); }
+.cal-legend-dot.todo { background: var(--orange); }
+
+.cal-grid-wrap { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); background: var(--brown); padding: 7px 0; }
+.cal-weekday { text-align: center; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); }
+.cal-weekday.sun { color: #ffb3b3; }
+.cal-weekday.sat { color: #afd0ff; }
+.cal-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; background: var(--cream-dark); }
+.cal-cell {
+  background: var(--white); min-height: 62px; padding: 4px 3px 3px;
+  cursor: pointer; overflow: hidden; transition: background 0.1s;
+}
+.cal-cell:active { background: #f5f0e8; }
+.cal-cell.empty { background: #faf8f5; cursor: default; pointer-events: none; }
+.cal-cell.today { background: #fffbe8; }
+.cal-num-wrap { display: flex; justify-content: center; margin-bottom: 2px; }
+.cal-num {
+  font-size: 12px; font-weight: 700; color: #444;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-cell.today .cal-num { background: var(--brown); color: #fff; }
+.cal-cell.sun .cal-num { color: #d94040; }
+.cal-cell.sat .cal-num { color: #4070bf; }
+.cal-cell.today.sun .cal-num, .cal-cell.today.sat .cal-num { color: #fff; }
+.cal-chips { display: flex; flex-direction: column; gap: 1px; }
+.cal-chip {
+  font-size: 8.5px; line-height: 1.3; border-radius: 3px; padding: 1px 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700;
+}
+.cal-chip.elapsed { background: var(--green-pale); color: #3a7020; }
+.cal-chip.remaining { background: var(--purple-pale); color: #5a3d87; }
+.cal-chip.todo { background: var(--orange-pale); color: #a04010; }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(30,15,5,0.40); z-index: 300;
+  align-items: flex-end; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 20px 20px 0 0;
+  padding: 24px 20px 40px; width: 100%; max-width: 480px;
+  animation: slideUp 0.22s ease; max-height: 85vh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(50px); opacity:0;} to { transform: translateY(0); opacity:1;} }
+.modal-title { font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 16px; }
+.modal label {
+  display: block; font-size: 13px; font-weight: 700;
+  color: var(--text-light); margin-bottom: 5px; margin-top: 14px; letter-spacing: 0.06em;
+}
+.modal input[type="text"],
+.modal input[type="date"],
+.modal textarea {
+  width: 100%; border: 1.5px solid var(--cream-dark); border-radius: 10px;
+  padding: 12px 14px; font-size: 16px; color: var(--text);
+  background: var(--cream); outline: none; transition: border-color 0.2s; font-family: inherit;
+}
+.modal textarea { resize: vertical; min-height: 64px; }
+.modal input:focus, .modal textarea:focus { border-color: var(--green); background: #fff; }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.btn-cancel {
+  flex: 1; padding: 14px; border: 1.5px solid var(--cream-dark);
+  border-radius: 10px; background: none; color: var(--text-light);
+  font-size: 16px; cursor: pointer; font-family: inherit;
+}
+.btn-ok {
+  flex: 2; padding: 14px; border: none; border-radius: 10px;
+  background: var(--green); color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.btn-ok:active { background: var(--green-light); }
+.btn-ok.danger { background: #e05050; }
+
+/* ── TODO POPUP ── */
+.popup-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.38); z-index: 300;
+  align-items: flex-end; justify-content: center;
+}
+.popup-overlay.active { display: flex; }
+.popup {
+  background: var(--white); border-radius: 20px 20px 0 0;
+  padding: 0 0 32px; width: 100%; max-width: 480px;
+  max-height: 80vh; display: flex; flex-direction: column;
+  animation: slideUp 0.2s ease;
+}
+.popup-head { padding: 16px 18px 12px; border-bottom: 1.5px solid var(--cream-dark); flex-shrink: 0; }
+.popup-date-text { font-size: 15px; font-weight: 900; color: var(--brown); }
+.popup-body { overflow-y: auto; padding: 12px 18px; flex: 1; }
+.popup-sec-title {
+  font-size: 11px; font-weight: 700; color: var(--text-light);
+  letter-spacing: 0.08em; margin: 12px 0 6px;
+}
+.popup-sec-title:first-child { margin-top: 0; }
+.popup-ev-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--cream-dark);
+}
+.popup-ev-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.popup-ev-dot.elapsed { background: var(--green); }
+.popup-ev-dot.remaining { background: var(--purple); }
+.popup-ev-name { flex: 1; font-size: 14px; font-weight: 700; color: var(--text); }
+.popup-ev-days { font-size: 13px; font-weight: 900; }
+.popup-ev-days.elapsed { color: var(--green); }
+.popup-ev-days.remaining { color: var(--purple); }
+.popup-ev-days.overdue { color: #e05050; }
+.todo-list { margin-bottom: 4px; }
+.todo-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--cream-dark); }
+.todo-item:last-child { border-bottom: none; }
+.todo-check {
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--orange);
+  background: none; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--orange); transition: all 0.15s;
+}
+.todo-check.done { background: var(--orange); color: #fff; }
+.todo-text { flex: 1; font-size: 14px; color: var(--text); word-break: break-all; }
+.todo-text.done { text-decoration: line-through; color: var(--text-light); }
+.todo-del { background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+.todo-del:active { color: #e05050; }
+.todo-input-row { display: flex; gap: 6px; margin-top: 8px; }
+.todo-input {
+  flex: 1; border: 1.5px solid var(--cream-dark); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; font-family: inherit;
+  color: var(--text); background: var(--cream); outline: none; transition: border-color 0.15s;
+}
+.todo-input:focus { border-color: var(--orange); background: #fff; }
+.todo-add-btn {
+  background: var(--orange); color: #fff; border: none; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.todo-add-btn:active { opacity: 0.8; }
+.popup-close { margin: 8px 18px 0; padding: 10px; border: 1.5px solid var(--cream-dark); border-radius: 10px; text-align: center; font-size: 14px; color: var(--text-light); cursor: pointer; flex-shrink: 0; }
+.popup-close:active { background: var(--cream); }
+.empty-note { font-size: 13px; color: var(--text-light); padding: 4px 0 8px; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-title-row">
-    <div class="header-back-btn" onclick="location.href='index.html'">← Farm Tools</div>
-    <div class="header-sub">栽培日数管理</div>
+<!-- ══════════════════════════════
+     画面① TOP（作物選択）
+════════════════════════════════ -->
+<div class="screen" id="screenTop">
+  <div class="header">
+    <div class="header-row">
+      <div class="header-back" onclick="location.href='index.html'">← Farm Tools</div>
+      <div class="header-title">栽培管理</div>
+    </div>
   </div>
-  <div class="tabs-wrap" id="tabsWrap">
-    <button class="tab-add-btn" onclick="openAddCropModal()" title="作物追加">＋</button>
+  <div class="top-body" id="topBody"></div>
+  <button class="fab" id="fabAdd" title="作物を追加">＋</button>
+</div>
+
+<!-- ══════════════════════════════
+     画面② DETAIL（日数管理＋カレンダー）
+════════════════════════════════ -->
+<div class="screen hidden" id="screenDetail">
+  <div class="header">
+    <div class="header-row">
+      <div class="header-back" id="detailBack">← 作物一覧</div>
+      <div class="header-title" id="detailTitle"></div>
+      <button class="header-action" id="detailEditBtn" title="作物名を編集">✎</button>
+    </div>
+    <div class="swipe-indicator">
+      <div class="swipe-dot active" id="dot0"></div>
+      <div class="swipe-dot" id="dot1"></div>
+    </div>
+  </div>
+
+  <div class="swipe-container" id="swipeContainer">
+    <!-- pane 0: 日数管理 -->
+    <div class="swipe-pane" id="pane0"></div>
+    <!-- pane 1: カレンダー -->
+    <div class="swipe-pane" id="pane1"></div>
   </div>
 </div>
 
-<div class="main" id="mainContent"></div>
-
-<!-- Modal: 作物追加 -->
-<div class="modal-bg" id="modalAddCrop">
+<!-- ══════════════════════════════
+     MODALS
+════════════════════════════════ -->
+<!-- 作物追加/編集 -->
+<div class="modal-bg" id="modalCrop">
   <div class="modal">
-    <div class="modal-title">🌱 新しい作物を追加</div>
+    <div class="modal-title" id="modalCropTitle">🌱 新しい作物を追加</div>
     <label>作物名</label>
-    <input type="text" id="inputCropName" placeholder="例: トマト">
+    <input type="text" id="inputCropName" placeholder="例：ズッキーニ">
+    <label>アイコン（絵文字）</label>
+    <input type="text" id="inputCropIcon" placeholder="例：🥒（省略可）" maxlength="4">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modalAddCrop')">キャンセル</button>
-      <button class="btn-ok" onclick="addCrop()">追加する</button>
+      <button class="btn-cancel" onclick="closeModal('modalCrop')">キャンセル</button>
+      <button class="btn-ok" id="btnCropOk" onclick="saveCrop()">追加する</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: 日数項目追加 -->
-<div class="modal-bg" id="modalAddItem">
+<!-- 日数項目追加/編集 -->
+<div class="modal-bg" id="modalItem">
   <div class="modal">
-    <div class="modal-title" id="modalAddItemTitle">項目を追加</div>
+    <div class="modal-title" id="modalItemTitle">項目を追加</div>
     <label>項目名</label>
-    <input type="text" id="inputItemName" placeholder="例: 播種">
+    <input type="text" id="inputItemName" placeholder="例：播種">
     <label id="inputDateLabel">開始日</label>
     <input type="date" id="inputItemDate">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('modalAddItem')">キャンセル</button>
-      <button class="btn-ok" onclick="addItem()">追加する</button>
+      <button class="btn-cancel" onclick="closeModal('modalItem')">キャンセル</button>
+      <button class="btn-ok" id="btnItemOk" onclick="saveItem()">追加する</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: 作業ログ追加/編集 -->
+<!-- 作業ログ追加/編集 -->
 <div class="modal-bg" id="modalLog">
   <div class="modal">
-    <div class="modal-title" id="modalLogTitle">📝 作業を記録</div>
+    <div class="modal-title" id="modalLogTitle">📋 作業を記録</div>
     <label>日付</label>
     <input type="date" id="inputLogDate">
     <label>やったこと</label>
-    <input type="text" id="inputLogAction" placeholder="例: 定植">
+    <input type="text" id="inputLogAction" placeholder="例：定植">
     <label>メモ（任意）</label>
-    <textarea id="inputLogMemo" placeholder="例: 2000株を2日かけて定植"></textarea>
+    <textarea id="inputLogMemo" placeholder="例：2000株を2日かけて定植"></textarea>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('modalLog')">キャンセル</button>
       <button class="btn-ok" onclick="saveLog()">保存する</button>
@@ -370,254 +458,567 @@
   </div>
 </div>
 
-<script>
-// キー名変更の救済: grun_crops2があればgrun_cropsに移行
-if (localStorage.getItem('grun_crops2') && !localStorage.getItem('grun_crops')) {
-  localStorage.setItem('grun_crops', localStorage.getItem('grun_crops2'));
-}
-let crops = JSON.parse(localStorage.getItem('grun_crops') || '[]');
-let currentCropId = crops.length ? crops[0].id : null;
-let addItemMode = null;
-let addItemCropId = null;
-let editLogId = null;
-let editLogCropId = null;
+<!-- ToDo ポップアップ -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup">
+    <div class="popup-head"><div class="popup-date-text" id="popupDateText"></div></div>
+    <div class="popup-body" id="popupBody"></div>
+    <div class="popup-close" id="popupClose">閉じる</div>
+  </div>
+</div>
 
+<script>
+// ══════════════════════════════
+// DATA
+// ══════════════════════════════
+const CROPS_KEY = 'grun_crops';
+const TODOS_KEY = 'grun_calendar_todos';
+
+// 既存データ移行
+if (localStorage.getItem('grun_crops2') && !localStorage.getItem(CROPS_KEY)) {
+  localStorage.setItem(CROPS_KEY, localStorage.getItem('grun_crops2'));
+}
+
+let crops = [];
+try { crops = JSON.parse(localStorage.getItem(CROPS_KEY) || '[]'); } catch {}
+
+// サンプルデータ（初回のみ）
 if (!crops.length) {
-  const now = new Date();
-  const daysAgo = d => { const dt = new Date(now); dt.setDate(dt.getDate()-d); return dt.toISOString().slice(0,10); };
-  const daysLater = d => { const dt = new Date(now); dt.setDate(dt.getDate()+d); return dt.toISOString().slice(0,10); };
-  const fmtDate = s => { const d=new Date(s); return (d.getMonth()+1)+'/'+(d.getDate())+'('+['日','月','火','水','木','金','土'][d.getDay()]+')'; };
+  const ago = d => { const dt=new Date(); dt.setDate(dt.getDate()-d); return dt.toISOString().slice(0,10); };
+  const later = d => { const dt=new Date(); dt.setDate(dt.getDate()+d); return dt.toISOString().slice(0,10); };
   crops = [
-    { id:'c1', name:'トマト',
-      elapsed:[{id:'e1',name:'播種',date:daysAgo(15)},{id:'e2',name:'薬剤散布',date:daysAgo(10)}],
-      remaining:[{id:'r1',name:'開花まで',date:daysLater(30)}],
-      logs:[{id:'l1',date:daysAgo(15),action:'播種',memo:'ハウス2棟、約1500株'},{id:'l2',date:daysAgo(10),action:'薬剤散布',memo:'ダニコール1000倍希釈'}]
-    },
-    { id:'c2', name:'なす',
-      elapsed:[{id:'e3',name:'播種',date:daysAgo(20)},{id:'e4',name:'収穫',date:daysAgo(14)}],
-      remaining:[{id:'r2',name:'次の施肥まで',date:daysLater(7)}],
-      logs:[{id:'l3',date:daysAgo(20),action:'播種',memo:''},{id:'l4',date:daysAgo(14),action:'初収穫',memo:'露地1列目'}]
-    }
+    { id:'c1', name:'ズッキーニ', icon:'🥒',
+      elapsed:[{id:'e1',name:'播種',date:ago(49)},{id:'e2',name:'発芽',date:ago(42)},{id:'e3',name:'定植',date:ago(26)},{id:'e4',name:'追肥',date:ago(13)},{id:'e5',name:'初収穫',date:ago(1)}],
+      remaining:[{id:'r1',name:'撤収',date:later(64)}], logs:[] },
+    { id:'c2', name:'ミニカボチャ', icon:'🎃',
+      elapsed:[{id:'e6',name:'播種',date:ago(30)}],
+      remaining:[{id:'r2',name:'収穫',date:later(50)}], logs:[] }
   ];
-  currentCropId = 'c1';
   save();
 }
 
-function save() { localStorage.setItem('grun_crops', JSON.stringify(crops)); }
+function save() { localStorage.setItem(CROPS_KEY, JSON.stringify(crops)); }
+function loadTodos() { try { return JSON.parse(localStorage.getItem(TODOS_KEY)||'{}'); } catch { return {}; } }
+function saveTodos(t) { localStorage.setItem(TODOS_KEY, JSON.stringify(t)); }
 
 function daysDiff(dateStr) {
-  const t=new Date(dateStr), today=new Date();
-  t.setHours(0,0,0,0); today.setHours(0,0,0,0);
-  return Math.round((today-t)/86400000);
+  const t=new Date(dateStr), now=new Date();
+  t.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.round((now-t)/86400000);
 }
-
 function fmtDate(s) {
   const d=new Date(s);
   return (d.getMonth()+1)+'/'+(d.getDate())+'('+['日','月','火','水','木','金','土'][d.getDay()]+')';
 }
-
-function render() { renderTabs(); renderMain(); }
-
-function renderTabs() {
-  const wrap = document.getElementById('tabsWrap');
-  const addBtn = wrap.querySelector('.tab-add-btn');
-  wrap.querySelectorAll('.tab-btn').forEach(b=>b.remove());
-  crops.forEach((c,i) => {
-    const btn = document.createElement('button');
-    btn.className = 'tab-btn' + (c.id===currentCropId?' active':'');
-    btn.innerHTML = esc(c.name) +
-      '<span class="tab-sort-btns">' +
-        '<button class="tab-sort-btn" onclick="moveCrop(\''+c.id+'\',-1,event)" title="左へ">◀</button>' +
-        '<button class="tab-sort-btn" onclick="moveCrop(\''+c.id+'\',1,event)" title="右へ">▶</button>' +
-      '</span>';
-    btn.addEventListener('click', e => {
-      if (e.target.classList.contains('tab-sort-btn')) return;
-      currentCropId = c.id; render();
-    });
-    wrap.insertBefore(btn, addBtn);
-  });
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function moveCrop(cropId, dir, e) {
-  e.stopPropagation();
-  const i = crops.findIndex(c=>c.id===cropId);
-  const j = i + dir;
-  if (j<0 || j>=crops.length) return;
-  [crops[i], crops[j]] = [crops[j], crops[i]];
-  save(); render();
+// ══════════════════════════════
+// SCREEN NAVIGATION
+// ══════════════════════════════
+let currentCropId = null;
+let currentPane = 0;
+
+function showTop() {
+  document.getElementById('screenTop').classList.remove('hidden','slide-left');
+  document.getElementById('screenDetail').classList.add('hidden');
+  document.getElementById('screenDetail').classList.remove('slide-left');
+  currentCropId = null;
+  renderTop();
 }
 
-function renderMain() {
-  const main = document.getElementById('mainContent');
+function showDetail(cropId) {
+  currentCropId = cropId;
+  currentPane = 0;
+  document.getElementById('screenTop').classList.add('slide-left');
+  document.getElementById('screenDetail').classList.remove('hidden','slide-left');
+  renderDetail();
+  updateSwipeDots();
+}
+
+document.getElementById('detailBack').addEventListener('click', showTop);
+document.getElementById('fabAdd').addEventListener('click', openAddCropModal);
+document.getElementById('detailEditBtn').addEventListener('click', openEditCropModal);
+
+// ══════════════════════════════
+// SWIPE
+// ══════════════════════════════
+let swipeStartX = 0, swipeStartY = 0, swipeDx = 0, isSwiping = false;
+const container = document.getElementById('swipeContainer');
+
+container.addEventListener('touchstart', e => {
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+  swipeDx = 0; isSwiping = false;
+}, {passive:true});
+
+container.addEventListener('touchmove', e => {
+  const dx = e.touches[0].clientX - swipeStartX;
+  const dy = e.touches[0].clientY - swipeStartY;
+  if (!isSwiping && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+  if (!isSwiping) {
+    if (Math.abs(dx) < Math.abs(dy)) return; // 縦スクロール優先
+    isSwiping = true;
+  }
+  swipeDx = dx;
+}, {passive:true});
+
+container.addEventListener('touchend', () => {
+  if (!isSwiping) return;
+  if (swipeDx < -50 && currentPane === 0) switchPane(1);
+  else if (swipeDx > 50 && currentPane === 1) switchPane(0);
+  isSwiping = false;
+});
+
+function switchPane(idx) {
+  currentPane = idx;
+  const offset = idx * -100;
+  document.getElementById('pane0').style.transform = `translateX(${offset}%)`;
+  document.getElementById('pane1').style.transform = `translateX(${offset}%)`;
+  document.getElementById('pane0').style.transition = 'transform 0.3s cubic-bezier(.4,0,.2,1)';
+  document.getElementById('pane1').style.transition = 'transform 0.3s cubic-bezier(.4,0,.2,1)';
+  if (idx === 1) renderCalendar();
+  updateSwipeDots();
+}
+
+function updateSwipeDots() {
+  document.getElementById('dot0').classList.toggle('active', currentPane===0);
+  document.getElementById('dot1').classList.toggle('active', currentPane===1);
+}
+
+// ══════════════════════════════
+// TOP RENDER
+// ══════════════════════════════
+function renderTop() {
+  const body = document.getElementById('topBody');
   if (!crops.length) {
-    main.innerHTML = '<div class="no-crop"><div class="no-crop-icon">🌱</div><div class="no-crop-text">作物を追加してください</div></div>';
+    body.innerHTML = `<div class="no-crop">
+      <div class="no-crop-icon">🌱</div>
+      <div class="no-crop-text">作物を追加してください</div>
+    </div>`;
     return;
   }
+  body.innerHTML = crops.map(c => {
+    const elapsedCount = (c.elapsed||[]).length;
+    const remainingCount = (c.remaining||[]).length;
+    const latestElapsed = (c.elapsed||[]).reduce((a,b)=> a.date>b.date?a:b, {date:''});
+    const metaText = latestElapsed.date
+      ? `最終記録：${latestElapsed.name}（${daysDiff(latestElapsed.date)}日前）`
+      : `経過${elapsedCount}件 / 残り${remainingCount}件`;
+    return `<div class="crop-card" onclick="showDetail('${c.id}')">
+      <div class="crop-card-icon">${esc(c.icon||'🌿')}</div>
+      <div class="crop-card-body">
+        <div class="crop-card-name">${esc(c.name)}</div>
+        <div class="crop-card-meta">${esc(metaText)}</div>
+      </div>
+      <div class="crop-card-actions" onclick="event.stopPropagation()">
+        <button class="crop-card-btn" onclick="openEditCropModalById('${c.id}')">編集</button>
+        <button class="crop-card-btn del" onclick="deleteCrop('${c.id}')">削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════
+// DETAIL RENDER (Pane 0)
+// ══════════════════════════════
+function renderDetail() {
   const crop = crops.find(c=>c.id===currentCropId);
   if (!crop) return;
+  document.getElementById('detailTitle').textContent = (crop.icon||'') + ' ' + crop.name;
 
-  let h = '';
+  const pane = document.getElementById('pane0');
+  pane.style.transform = '';
+  document.getElementById('pane1').style.transform = '';
+  document.getElementById('pane0').style.transition = '';
+  document.getElementById('pane1').style.transition = '';
 
-  // Crop header
-  h += '<div class="crop-header">';
-  h += '<div class="crop-title">'+esc(crop.name)+'</div>';
-  h += '<button class="crop-del-btn" onclick="deleteCrop(\''+crop.id+'\')">作物を削除</button>';
-  h += '</div>';
-
-  // Elapsed
-  h += section('⏱ 経過日数', 'elapsed', crop.id, crop.elapsed.map(item => {
+  // 経過日数
+  let h = '<div class="section">';
+  h += '<div class="section-header"><span class="section-title elapsed">⏱ 経過日数</span>';
+  h += `<button class="item-add-btn" onclick="openAddItemModal('elapsed')">＋</button></div>`;
+  h += '<div class="item-list">';
+  if (!(crop.elapsed||[]).length) h += '<div class="empty-state">項目がありません。＋で追加</div>';
+  (crop.elapsed||[]).forEach(item => {
     const d = daysDiff(item.date);
-    return row(
-      '<div class="item-name">'+esc(item.name)+'</div><div class="item-date-label">開始日: '+item.date+'</div>',
-      '<div class="day-badge"><span class="day-num elapsed">'+d+'</span><span class="day-unit">日経過</span></div>',
-      'deleteItem(\''+crop.id+'\',\'elapsed\',\''+item.id+'\')'
-    );
-  }).join(''));
+    h += `<div class="item-row">
+      <div class="item-label" onclick="openEditItemModal('elapsed','${item.id}')">
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-date-label">開始日: ${item.date}</div>
+      </div>
+      <div class="day-badge"><span class="day-num elapsed">${d}</span><span class="day-unit">日経過</span></div>
+      <button class="item-del-btn" onclick="deleteItem('elapsed','${item.id}')">×</button>
+    </div>`;
+  });
+  h += '</div></div>';
 
-  // Remaining
-  h += section('📅 残り日数', 'remaining', crop.id, crop.remaining.map(item => {
+  // 残り日数
+  h += '<div class="section">';
+  h += '<div class="section-header"><span class="section-title remaining">📅 残り日数</span>';
+  h += `<button class="item-add-btn" onclick="openAddItemModal('remaining')">＋</button></div>`;
+  h += '<div class="item-list">';
+  if (!(crop.remaining||[]).length) h += '<div class="empty-state">項目がありません。＋で追加</div>';
+  (crop.remaining||[]).forEach(item => {
     const rem = -daysDiff(item.date);
     const cls = rem < 0 ? 'overdue' : 'remaining';
-    const label = rem < 0 ? '+'+Math.abs(rem)+'</span><span class="day-unit">日超過' : rem+'</span><span class="day-unit">日後';
-    return row(
-      '<div class="item-name">'+esc(item.name)+'</div><div class="item-date-label">目標日: '+item.date+'</div>',
-      '<div class="day-badge"><span class="day-num '+cls+'">'+label+'</span></div>',
-      'deleteItem(\''+crop.id+'\',\'remaining\',\''+item.id+'\')'
-    );
-  }).join(''));
+    const label = rem < 0 ? `+${Math.abs(rem)}</span><span class="day-unit">日超過` : `${rem}</span><span class="day-unit">日後`;
+    h += `<div class="item-row">
+      <div class="item-label" onclick="openEditItemModal('remaining','${item.id}')">
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-date-label">目標日: ${item.date}</div>
+      </div>
+      <div class="day-badge"><span class="day-num ${cls}">${label}</span></div>
+      <button class="item-del-btn" onclick="deleteItem('remaining','${item.id}')">×</button>
+    </div>`;
+  });
+  h += '</div></div>';
 
-  // Log
+  // 作業ログ
   const logs = (crop.logs||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
   h += '<div class="section">';
   h += '<div class="section-header"><span class="section-title log">📋 作業ログ</span>';
-  h += '<button class="item-add-btn" onclick="openLogModal(\''+crop.id+'\',null)">＋</button></div>';
+  h += `<button class="item-add-btn" onclick="openAddLogModal()">＋</button></div>`;
   h += '<div class="item-list">';
-  if (!logs.length) {
-    h += '<div class="empty-state">記録がありません。＋で追加</div>';
-  } else {
-    logs.forEach(log => {
-      h += '<div class="log-row">';
-      h += '<div class="log-date-col">'+fmtDate(log.date)+'</div>';
-      h += '<div class="log-body"><div class="log-action">'+esc(log.action)+'</div>';
-      if (log.memo) h += '<div class="log-memo">'+esc(log.memo)+'</div>';
-      h += '</div>';
-      h += '<div class="log-actions">';
-      h += '<button class="log-edit-btn" onclick="openLogModal(\''+crop.id+'\',\''+log.id+'\')">編集</button>';
-      h += '<button class="log-del-btn" onclick="deleteLog(\''+crop.id+'\',\''+log.id+'\')">削除</button>';
-      h += '</div></div>';
-    });
-  }
+  if (!logs.length) h += '<div class="empty-state">記録がありません。＋で追加</div>';
+  logs.forEach(log => {
+    h += `<div class="log-row">
+      <div class="log-date-col">${fmtDate(log.date)}</div>
+      <div class="log-body">
+        <div class="log-action">${esc(log.action)}</div>
+        ${log.memo ? `<div class="log-memo">${esc(log.memo)}</div>` : ''}
+      </div>
+      <div class="log-actions">
+        <button class="log-edit-btn" onclick="openEditLogModal('${log.id}')">編集</button>
+        <button class="log-del-btn" onclick="deleteLog('${log.id}')">削除</button>
+      </div>
+    </div>`;
+  });
   h += '</div></div>';
 
-  main.innerHTML = h;
+  pane.innerHTML = h;
 }
 
-function section(title, cls, cropId, rowsHtml) {
-  return '<div class="section"><div class="section-header">'
-    + '<span class="section-title '+cls+'">'+title+'</span>'
-    + '<button class="item-add-btn" onclick="openAddItemModal(\''+cropId+'\',\''+cls+'\')">＋</button>'
-    + '</div><div class="item-list">'
-    + (rowsHtml || '<div class="empty-state">項目がありません。＋で追加</div>')
-    + '</div></div>';
+// ══════════════════════════════
+// CALENDAR RENDER (Pane 1)
+// ══════════════════════════════
+let calYear, calMonth;
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+}
+initCal();
+
+function renderCalendar() {
+  const crop = crops.find(c=>c.id===currentCropId);
+  if (!crop) return;
+  const pane = document.getElementById('pane1');
+
+  // イベントマップ
+  const evMap = {};
+  (crop.elapsed||[]).forEach(item => {
+    if (!evMap[item.date]) evMap[item.date]=[];
+    evMap[item.date].push({name:item.name, type:'elapsed'});
+  });
+  (crop.remaining||[]).forEach(item => {
+    if (!evMap[item.date]) evMap[item.date]=[];
+    evMap[item.date].push({name:item.name, type:'remaining'});
+  });
+
+  const todos = loadTodos();
+  const mn = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const y = calYear, m = calMonth;
+  const firstDay = new Date(y,m,1).getDay();
+  const lastDate = new Date(y,m+1,0).getDate();
+  const todayS = todayStr();
+
+  let h = `<div class="cal-header-row">
+    <button class="cal-month-nav" onclick="calPrev()">‹</button>
+    <div class="cal-month-title">${y}年 ${mn[m]}</div>
+    <button class="cal-month-nav" onclick="calNext()">›</button>
+  </div>`;
+  h += `<div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-legend-dot elapsed"></div>経過</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot remaining"></div>残り</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot todo"></div>ToDo</div>
+  </div>`;
+  h += '<div class="cal-grid-wrap">';
+  h += '<div class="cal-weekdays"><div class="cal-weekday sun">日</div><div class="cal-weekday">月</div><div class="cal-weekday">火</div><div class="cal-weekday">水</div><div class="cal-weekday">木</div><div class="cal-weekday">金</div><div class="cal-weekday sat">土</div></div>';
+  h += '<div class="cal-days">';
+
+  for (let i=0;i<firstDay;i++) h += '<div class="cal-cell empty"></div>';
+
+  for (let d=1;d<=lastDate;d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(y,m,d).getDay();
+    const isToday = ds===todayS;
+    const evs = evMap[ds]||[];
+    const dayTodos = (todos[ds]||[]).filter(t=>!t.done);
+    const cls = ['cal-cell', isToday?'today':'', dow===0?'sun':dow===6?'sat':''].filter(Boolean).join(' ');
+
+    h += `<div class="${cls}" onclick="showTodoPopup('${ds}')">`;
+    h += `<div class="cal-num-wrap"><div class="cal-num">${d}</div></div>`;
+    h += '<div class="cal-chips">';
+    const maxEv = dayTodos.length>0?2:3;
+    evs.slice(0,maxEv).forEach(ev => {
+      h += `<div class="cal-chip ${ev.type}">${esc(ev.name)}</div>`;
+    });
+    if (evs.length>maxEv) h+=`<div class="cal-chip elapsed">+${evs.length-maxEv}</div>`;
+    dayTodos.slice(0,1).forEach(t => { h+=`<div class="cal-chip todo">${esc(t.text)}</div>`; });
+    if (dayTodos.length>1) h+=`<div class="cal-chip todo">+${dayTodos.length-1}</div>`;
+    h += '</div></div>';
+  }
+
+  h += '</div></div>';
+  pane.innerHTML = h;
 }
 
-function row(labelHtml, badgeHtml, delFn) {
-  return '<div class="item-row"><div class="item-label">'+labelHtml+'</div>'
-    +badgeHtml
-    +'<button class="item-del-btn" onclick="'+delFn+'">×</button></div>';
+function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+// ══════════════════════════════
+// TODO POPUP
+// ══════════════════════════════
+let popupDate = null;
+function showTodoPopup(dateStr) {
+  popupDate = dateStr;
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const wd = ['日','月','火','水','木','金','土'][new Date(y,m-1,d).getDay()];
+  document.getElementById('popupDateText').textContent = `${y}年${m}月${d}日（${wd}）`;
+  renderPopupBody();
+  document.getElementById('popupOverlay').classList.add('active');
 }
 
-function esc(s) {
-  if (!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function renderPopupBody() {
+  const dateStr = popupDate;
+  const crop = crops.find(c=>c.id===currentCropId);
+  const evMap = {};
+  (crop.elapsed||[]).forEach(item => { if(!evMap[item.date])evMap[item.date]=[]; evMap[item.date].push({name:item.name,type:'elapsed'}); });
+  (crop.remaining||[]).forEach(item => { if(!evMap[item.date])evMap[item.date]=[]; evMap[item.date].push({name:item.name,type:'remaining'}); });
+  const evs = evMap[dateStr]||[];
+  const todos = loadTodos();
+  const dayTodos = todos[dateStr]||[];
+
+  const body = document.getElementById('popupBody');
+  let h='';
+
+  if (evs.length) {
+    h+='<div class="popup-sec-title">作業イベント</div>';
+    evs.forEach(ev => {
+      const d = daysDiff(dateStr);
+      let label, cls;
+      if (ev.type==='elapsed') { label=d>=0?`${d}日経過`:`${-d}日後`; cls='elapsed'; }
+      else { const rem=-d; label=rem<0?`${Math.abs(rem)}日超過`:`${rem}日後`; cls=rem<0?'overdue':'remaining'; }
+      h+=`<div class="popup-ev-row">
+        <div class="popup-ev-dot ${ev.type}"></div>
+        <div class="popup-ev-name">${esc(ev.name)}</div>
+        <div class="popup-ev-days ${cls}">${label}</div>
+      </div>`;
+    });
+  }
+
+  h+='<div class="popup-sec-title">ToDo</div>';
+  if (dayTodos.length) {
+    h+='<div class="todo-list">';
+    dayTodos.forEach(t => {
+      h+=`<div class="todo-item">
+        <div class="todo-check${t.done?' done':''}" onclick="toggleTodo('${t.id}')">${t.done?'✓':''}</div>
+        <div class="todo-text${t.done?' done':''}">${esc(t.text)}</div>
+        <button class="todo-del" onclick="deleteTodo('${t.id}')">×</button>
+      </div>`;
+    });
+    h+='</div>';
+  } else {
+    h+='<div class="empty-note">まだToDoはありません</div>';
+  }
+
+  h+=`<div class="todo-input-row">
+    <input type="text" class="todo-input" id="todoInput" placeholder="例：追肥する、草むしり...">
+    <button class="todo-add-btn" onclick="addTodo()">追加</button>
+  </div>`;
+
+  body.innerHTML = h;
+  const inp = document.getElementById('todoInput');
+  if (inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') addTodo(); });
 }
 
-// --- modals ---
+function addTodo() {
+  const inp = document.getElementById('todoInput');
+  const text = (inp?inp.value:'').trim(); if(!text) return;
+  const todos = loadTodos();
+  if(!todos[popupDate]) todos[popupDate]=[];
+  todos[popupDate].push({id:'t'+Date.now(), text, done:false});
+  saveTodos(todos); renderPopupBody(); renderCalendar();
+  setTimeout(()=>{ const el=document.getElementById('todoInput'); if(el){el.focus();el.value='';} },30);
+}
+function toggleTodo(id) {
+  const todos=loadTodos();
+  const t=(todos[popupDate]||[]).find(t=>t.id===id); if(t) t.done=!t.done;
+  saveTodos(todos); renderPopupBody(); renderCalendar();
+}
+function deleteTodo(id) {
+  const todos=loadTodos();
+  if(todos[popupDate]) todos[popupDate]=todos[popupDate].filter(t=>t.id!==id);
+  saveTodos(todos); renderPopupBody(); renderCalendar();
+}
+
+document.getElementById('popupClose').addEventListener('click',()=>{ document.getElementById('popupOverlay').classList.remove('active'); });
+document.getElementById('popupOverlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.currentTarget.classList.remove('active'); });
+
+// ══════════════════════════════
+// MODALS: 作物
+// ══════════════════════════════
+let editCropId = null;
 function openAddCropModal() {
+  editCropId = null;
+  document.getElementById('modalCropTitle').textContent = '🌱 新しい作物を追加';
+  document.getElementById('btnCropOk').textContent = '追加する';
   document.getElementById('inputCropName').value='';
-  document.getElementById('modalAddCrop').classList.add('open');
+  document.getElementById('inputCropIcon').value='';
+  document.getElementById('modalCrop').classList.add('open');
   setTimeout(()=>document.getElementById('inputCropName').focus(),100);
 }
-function openAddItemModal(cropId, mode) {
-  addItemMode=mode; addItemCropId=cropId;
-  document.getElementById('inputItemName').value='';
-  document.getElementById('inputItemDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('modalAddItemTitle').textContent = mode==='elapsed'?'⏱ 経過日数の項目を追加':'📅 残り日数の項目を追加';
+function openEditCropModal() {
+  if (!currentCropId) return;
+  openEditCropModalById(currentCropId);
+}
+function openEditCropModalById(cropId) {
+  const crop = crops.find(c=>c.id===cropId); if(!crop) return;
+  editCropId = cropId;
+  document.getElementById('modalCropTitle').textContent = '✎ 作物を編集';
+  document.getElementById('btnCropOk').textContent = '保存する';
+  document.getElementById('inputCropName').value = crop.name;
+  document.getElementById('inputCropIcon').value = crop.icon||'';
+  document.getElementById('modalCrop').classList.add('open');
+  setTimeout(()=>document.getElementById('inputCropName').focus(),100);
+}
+function saveCrop() {
+  const name = document.getElementById('inputCropName').value.trim(); if(!name) return;
+  const icon = document.getElementById('inputCropIcon').value.trim();
+  if (editCropId) {
+    const c = crops.find(c=>c.id===editCropId); if(!c) return;
+    c.name=name; c.icon=icon||c.icon;
+  } else {
+    const c={id:'c'+Date.now(),name,icon:icon||'🌿',elapsed:[],remaining:[],logs:[]};
+    crops.push(c); currentCropId=c.id;
+  }
+  save(); closeModal('modalCrop');
+  if (editCropId && currentCropId===editCropId) renderDetail();
+  else renderTop();
+  if (!editCropId) showDetail(currentCropId);
+  editCropId=null;
+}
+function deleteCrop(cropId) {
+  if(!confirm('この作物を削除しますか？')) return;
+  crops=crops.filter(c=>c.id!==cropId);
+  save(); showTop();
+}
+
+// ══════════════════════════════
+// MODALS: 日数項目
+// ══════════════════════════════
+let itemMode=null, editItemId=null;
+function openAddItemModal(mode) {
+  itemMode=mode; editItemId=null;
+  document.getElementById('modalItemTitle').textContent = mode==='elapsed'?'⏱ 経過日数の項目を追加':'📅 残り日数の項目を追加';
+  document.getElementById('btnItemOk').textContent = '追加する';
   document.getElementById('inputDateLabel').textContent = mode==='elapsed'?'開始日':'目標日';
-  document.getElementById('modalAddItem').classList.add('open');
+  document.getElementById('inputItemName').value='';
+  document.getElementById('inputItemDate').value=todayStr();
+  document.getElementById('modalItem').classList.add('open');
   setTimeout(()=>document.getElementById('inputItemName').focus(),100);
 }
-function openLogModal(cropId, logId) {
-  editLogCropId=cropId; editLogId=logId;
-  const crop=crops.find(c=>c.id===cropId);
-  const log = logId ? (crop.logs||[]).find(l=>l.id===logId) : null;
-  document.getElementById('modalLogTitle').textContent = logId?'📝 作業を編集':'📝 作業を記録';
-  document.getElementById('inputLogDate').value = log ? log.date : new Date().toISOString().slice(0,10);
-  document.getElementById('inputLogAction').value = log ? log.action : '';
-  document.getElementById('inputLogMemo').value = log ? log.memo : '';
-  document.getElementById('modalLog').classList.add('open');
-  setTimeout(()=>document.getElementById('inputLogAction').focus(),100);
+function openEditItemModal(mode, itemId) {
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
+  const item=(crop[mode]||[]).find(i=>i.id===itemId); if(!item) return;
+  itemMode=mode; editItemId=itemId;
+  document.getElementById('modalItemTitle').textContent = mode==='elapsed'?'⏱ 経過日数を編集':'📅 残り日数を編集';
+  document.getElementById('btnItemOk').textContent = '保存する';
+  document.getElementById('inputDateLabel').textContent = mode==='elapsed'?'開始日':'目標日';
+  document.getElementById('inputItemName').value = item.name;
+  document.getElementById('inputItemDate').value = item.date;
+  document.getElementById('modalItem').classList.add('open');
+  setTimeout(()=>document.getElementById('inputItemName').focus(),100);
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-// --- actions ---
-function addCrop() {
-  const name=document.getElementById('inputCropName').value.trim();
-  if(!name) return;
-  const c={id:'c'+Date.now(),name,elapsed:[],remaining:[],logs:[]};
-  crops.push(c); currentCropId=c.id; save(); closeModal('modalAddCrop'); render();
-}
-function addItem() {
+function saveItem() {
   const name=document.getElementById('inputItemName').value.trim();
   const date=document.getElementById('inputItemDate').value;
   if(!name||!date) return;
-  const crop=crops.find(c=>c.id===addItemCropId);
-  if(!crop) return;
-  crop[addItemMode].push({id:'i'+Date.now(),name,date});
-  save(); closeModal('modalAddItem'); render();
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
+  if (editItemId) {
+    const item=(crop[itemMode]||[]).find(i=>i.id===editItemId); if(!item) return;
+    item.name=name; item.date=date;
+  } else {
+    if(!crop[itemMode]) crop[itemMode]=[];
+    crop[itemMode].push({id:'i'+Date.now(),name,date});
+  }
+  save(); closeModal('modalItem'); renderDetail();
+  editItemId=null;
+}
+function deleteItem(mode, itemId) {
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
+  crop[mode]=(crop[mode]||[]).filter(i=>i.id!==itemId);
+  save(); renderDetail();
+}
+
+// ══════════════════════════════
+// MODALS: 作業ログ
+// ══════════════════════════════
+let editLogId=null;
+function openAddLogModal() {
+  editLogId=null;
+  document.getElementById('modalLogTitle').textContent='📋 作業を記録';
+  document.getElementById('inputLogDate').value=todayStr();
+  document.getElementById('inputLogAction').value='';
+  document.getElementById('inputLogMemo').value='';
+  document.getElementById('modalLog').classList.add('open');
+  setTimeout(()=>document.getElementById('inputLogAction').focus(),100);
+}
+function openEditLogModal(logId) {
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
+  const log=(crop.logs||[]).find(l=>l.id===logId); if(!log) return;
+  editLogId=logId;
+  document.getElementById('modalLogTitle').textContent='📋 作業を編集';
+  document.getElementById('inputLogDate').value=log.date;
+  document.getElementById('inputLogAction').value=log.action;
+  document.getElementById('inputLogMemo').value=log.memo||'';
+  document.getElementById('modalLog').classList.add('open');
+  setTimeout(()=>document.getElementById('inputLogAction').focus(),100);
 }
 function saveLog() {
   const date=document.getElementById('inputLogDate').value;
   const action=document.getElementById('inputLogAction').value.trim();
   const memo=document.getElementById('inputLogMemo').value.trim();
   if(!date||!action) return;
-  const crop=crops.find(c=>c.id===editLogCropId);
-  if(!crop) return;
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
   if(!crop.logs) crop.logs=[];
   if(editLogId) {
-    const log=crop.logs.find(l=>l.id===editLogId);
-    if(log){log.date=date;log.action=action;log.memo=memo;}
+    const log=crop.logs.find(l=>l.id===editLogId); if(!log) return;
+    log.date=date; log.action=action; log.memo=memo;
   } else {
     crop.logs.push({id:'l'+Date.now(),date,action,memo});
   }
-  save(); closeModal('modalLog'); render();
+  save(); closeModal('modalLog'); renderDetail();
+  editLogId=null;
 }
-function deleteItem(cropId, type, itemId) {
-  const crop=crops.find(c=>c.id===cropId);
-  if(!crop) return;
-  crop[type]=crop[type].filter(i=>i.id!==itemId);
-  save(); render();
-}
-function deleteLog(cropId, logId) {
-  const crop=crops.find(c=>c.id===cropId);
-  if(!crop) return;
+function deleteLog(logId) {
+  const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
   crop.logs=(crop.logs||[]).filter(l=>l.id!==logId);
-  save(); render();
+  save(); renderDetail();
 }
-function deleteCrop(cropId) {
-  if(!confirm('この作物を削除しますか？')) return;
-  crops=crops.filter(c=>c.id!==cropId);
-  currentCropId=crops.length?crops[0].id:null;
-  save(); render();
-}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 document.querySelectorAll('.modal-bg').forEach(bg=>{
-  bg.addEventListener('click', e=>{ if(e.target===bg) bg.classList.remove('open'); });
+  bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('open'); });
 });
-document.getElementById('inputCropName').addEventListener('keydown',e=>{if(e.key==='Enter')addCrop();});
-document.getElementById('inputItemName').addEventListener('keydown',e=>{if(e.key==='Enter')addItem();});
 
-render();
+document.getElementById('inputCropName').addEventListener('keydown',e=>{ if(e.key==='Enter') saveCrop(); });
+document.getElementById('inputItemName').addEventListener('keydown',e=>{ if(e.key==='Enter') saveItem(); });
+
+// 起動
+showTop();
 </script>
 </body>
 </html>
