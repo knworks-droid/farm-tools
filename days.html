@@ -196,6 +196,32 @@ body {
 .item-del-btn:active { color: #e05050; }
 .empty-state { padding: 18px 14px; text-align: center; color: #bbb; font-size: 14px; }
 
+/* ── 完了バッジ ── */
+.item-done { background: #faf9f7; }
+.item-done .item-name { color: var(--text-light); }
+.day-badge-done {
+  display: flex; flex-direction: column; align-items: center; min-width: 54px; gap: 4px;
+}
+.snap-badge {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--green-pale); border-radius: 8px;
+  padding: 3px 8px; min-width: 54px;
+}
+.snap-num { font-size: 16px; font-weight: 900; color: var(--green); line-height: 1; }
+.snap-label { font-size: 10px; color: #5a9e3a; margin-top: 1px; white-space: nowrap; }
+.running-badge { display: flex; flex-direction: column; align-items: center; }
+.running-num { font-size: 14px; font-weight: 700; color: #bbb; line-height: 1; }
+.running-unit { font-size: 10px; color: #ccc; margin-top: 1px; }
+.item-done-btn {
+  background: none; border: 1.5px solid var(--cream-dark);
+  border-radius: 6px; padding: 3px 7px; font-size: 11px;
+  color: var(--text-light); cursor: pointer; font-family: inherit;
+  transition: all 0.15s; white-space: nowrap;
+}
+.item-done-btn:active { background: var(--cream-dark); }
+.item-done-btn.active { background: var(--green-pale); border-color: var(--green); color: var(--green); font-weight: 700; }
+.item-actions { display: flex; flex-direction: column; gap: 4px; align-items: center; flex-shrink: 0; }
+
 /* ── LOG ── */
 .log-row {
   display: flex; align-items: flex-start; gap: 10px;
@@ -641,15 +667,36 @@ function renderDetail() {
   h += `<button class="item-add-btn" onclick="openAddItemModal('elapsed')">＋</button></div>`;
   h += '<div class="item-list">';
   if (!(crop.elapsed||[]).length) h += '<div class="empty-state">項目がありません。＋で追加</div>';
-  (crop.elapsed||[]).forEach(item => {
-    const d = daysDiff(item.date);
-    h += `<div class="item-row">
+  const activeItems = (crop.elapsed||[]).filter(i => !i.doneAt);
+  const doneItems  = (crop.elapsed||[]).filter(i =>  i.doneAt);
+  [...activeItems, ...doneItems].forEach(item => {
+    const totalDays = daysDiff(item.date);
+    const isDone = !!item.doneAt;
+    const doneBtn = isDone
+      ? `<button class="item-done-btn active" onclick="uncompleteItem('${item.id}')">✓完了</button>`
+      : `<button class="item-done-btn" onclick="completeItem('${item.id}')">完了</button>`;
+    const badge = isDone
+      ? `<div class="day-badge-done">
+          <div class="snap-badge">
+            <span class="snap-num">${item.snapDays}</span>
+            <span class="snap-label">日で完了</span>
+          </div>
+          <div class="running-badge">
+            <span class="running-num">${totalDays}</span>
+            <span class="running-unit">日経過</span>
+          </div>
+        </div>`
+      : `<div class="day-badge"><span class="day-num elapsed">${totalDays}</span><span class="day-unit">日経過</span></div>`;
+    h += `<div class="item-row${isDone ? ' item-done' : ''}">
       <div class="item-label" onclick="openEditItemModal('elapsed','${item.id}')">
         <div class="item-name">${esc(item.name)}</div>
         <div class="item-date-label">開始日: ${item.date}</div>
       </div>
-      <div class="day-badge"><span class="day-num elapsed">${d}</span><span class="day-unit">日経過</span></div>
-      <button class="item-del-btn" onclick="deleteItem('elapsed','${item.id}')">×</button>
+      ${badge}
+      <div class="item-actions">
+        ${doneBtn}
+        <button class="item-del-btn" onclick="deleteItem('elapsed','${item.id}')">×</button>
+      </div>
     </div>`;
   });
   h += '</div></div>';
@@ -955,6 +1002,20 @@ function saveItem() {
   }
   save(); closeModal('modalItem'); renderDetail();
   editItemId=null;
+}
+function completeItem(itemId) {
+  const crop = crops.find(c=>c.id===currentCropId); if(!crop) return;
+  const item = (crop.elapsed||[]).find(i=>i.id===itemId); if(!item) return;
+  item.doneAt = todayStr();
+  item.snapDays = daysDiff(item.date);
+  save(); renderDetail();
+}
+function uncompleteItem(itemId) {
+  const crop = crops.find(c=>c.id===currentCropId); if(!crop) return;
+  const item = (crop.elapsed||[]).find(i=>i.id===itemId); if(!item) return;
+  delete item.doneAt;
+  delete item.snapDays;
+  save(); renderDetail();
 }
 function deleteItem(mode, itemId) {
   const crop=crops.find(c=>c.id===currentCropId); if(!crop) return;
